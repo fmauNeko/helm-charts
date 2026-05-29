@@ -1,0 +1,56 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "affinity": {
+            "description": "Affinity rules for pod scheduling",
+            "type": "object"
+        },
+        "image": {
+            "type": "object",
+            "properties": {
+                "pullPolicy": {
+                    "description": "Image pull policy",
+                    "type": "string"
+                },
+                "repository": {
+                    "description": "Container image repository",
+                    "type": "string"
+                },
+                "tag": {
+                    "description": "Container image tag. Defaults to chart appVersion when empty.",
+                    "type": "string"
+                }
+            }
+        },
+        "nodeSelector": {
+            "description": "Node selector for pod scheduling",
+            "type": "object"
+        },
+        "replicaCount": {
+            "description": "Number of pod replicas",
+            "type": "integer"
+        },
+        "resources": {
+            "description": "Resource requests and limits for the container",
+            "type": "object"
+        },
+        "service": {
+            "type": "object",
+            "properties": {
+                "port": {
+                    "description": "Service port",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "Kubernetes Service type",
+                    "type": "string"
+                }
+            }
+        },
+        "tolerations": {
+            "description": "Tolerations for pod scheduling",
+            "type": "array"
+        }
+    }
+}

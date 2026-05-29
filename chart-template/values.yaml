@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=./values.schema.json
+
+# -- Number of pod replicas
+replicaCount: 1
+
+image:
+  # -- Container image repository
+  repository: nginx
+  # -- Container image tag. Defaults to chart appVersion when empty.
+  tag: ''
+  # -- Image pull policy
+  pullPolicy: IfNotPresent
+
+service:
+  # -- Kubernetes Service type
+  type: ClusterIP
+  # -- Service port
+  port: 80
+
+# -- Resource requests and limits for the container
+resources: {}
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+
+# -- Node selector for pod scheduling
+nodeSelector: {}
+
+# -- Tolerations for pod scheduling
+tolerations: []
+
+# -- Affinity rules for pod scheduling
+affinity: {}
