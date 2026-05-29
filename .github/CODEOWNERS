@@ -1,0 +1,9 @@
+# Global owner: all files require @fmauNeko review by default
+* @fmauNeko
+
+# Release automation files — protect from accidental edits
+/.release-please-manifest.json @fmauNeko
+/release-please-config.json @fmauNeko
+
+# Charts directory — any new chart requires a review
+/charts/ @fmauNeko

@@ -1,0 +1,29 @@
+---
+extends: default
+
+rules:
+  # Allow 'on:' as a mapping key (required for GitHub Actions)
+  truthy:
+    check-keys: false
+    level: warning
+
+  # Relax line length for long GitHub Actions expressions
+  line-length:
+    max: 160
+    level: warning
+
+  # Don't require document-start '---' in all files
+  document-start: disable
+
+  # Allow single space after '#' comment character
+  comments:
+    min-spaces-from-content: 1
+
+  # Allow YAML files without trailing newline in edge cases
+  new-line-at-end-of-file: enable
+
+  # Indentation: 2 spaces
+  indentation:
+    spaces: 2
+    indent-sequences: true
+    check-multi-line-strings: false
