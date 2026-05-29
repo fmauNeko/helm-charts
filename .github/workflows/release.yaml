@@ -1,0 +1,94 @@
+# Release workflow: Release Please manages versions/changelogs/tags,
+# then the publish job packages and pushes released charts to GHCR as OCI artifacts.
+#
+# NOTE: Release Please PRs opened with GITHUB_TOKEN will NOT automatically trigger
+# the ci.yaml workflow. Mitigation: do NOT require CI status checks on RP PRs,
+# or use a PAT/GitHub App for the release-please action (future enhancement).
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  packages: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+      paths_released: ${{ steps.release.outputs.paths_released }}
+    steps:
+      - uses: googleapis/release-please-action@a02a34c4d625f9be5c11c380c543de6a0e688abf # v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Publish charts to GHCR
+    needs: release-please
+    if: needs.release-please.outputs.releases_created == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        chart_path: ${{ fromJSON(needs.release-please.outputs.paths_released) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@b9e51907a09c216f30c7b5b40dab9e3a26b9d9b # v4
+
+      - name: Login to GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io \
+            --username "${{ github.actor }}" \
+            --password-stdin
+
+      - name: Build chart dependencies
+        run: |
+          helm dependency build "${{ matrix.chart_path }}" || true
+
+      - name: Lint chart
+        run: |
+          helm lint --strict "${{ matrix.chart_path }}"
+
+      - name: Package chart
+        run: |
+          mkdir -p dist
+          helm package "${{ matrix.chart_path }}" --destination dist
+
+      - name: Check version does not already exist in GHCR
+        run: |
+          set -euo pipefail
+          PKG=$(ls dist/*.tgz 2>/dev/null | head -1)
+          if [ -z "$PKG" ]; then
+            echo "No chart package found in dist/"; exit 1
+          fi
+          CHART_NAME=$(helm show chart "$PKG" | grep '^name:' | awk '{print $2}')
+          CHART_VERSION=$(helm show chart "$PKG" | grep '^version:' | awk '{print $2}')
+          REPO="oci://ghcr.io/${GITHUB_REPOSITORY,,}/charts"
+          echo "Checking if ${REPO}/${CHART_NAME}:${CHART_VERSION} already exists..."
+          if helm pull "${REPO}/${CHART_NAME}" --version "${CHART_VERSION}" --destination /tmp/check 2>/dev/null; then
+            echo "ERROR: Version ${CHART_VERSION} already exists for ${CHART_NAME}. Refusing to overwrite."
+            exit 1
+          fi
+          echo "Version does not exist. Proceeding with push."
+
+      - name: Push chart to GHCR
+        run: |
+          set -euo pipefail
+          REPO="oci://ghcr.io/${GITHUB_REPOSITORY,,}/charts"
+          for pkg in dist/*.tgz; do
+            echo "Pushing $pkg to $REPO"
+            helm push "$pkg" "$REPO"
+          done
