@@ -20,6 +20,11 @@ CHANGELOG.md
 .cr-release-packages/
 dist/
 
+# Helm templates (Go template syntax, not valid YAML)
+chart-template/templates/
+charts/**/templates/
+*.tpl
+
 # Files with no prettier parser
 .gitattributes
 .npmrc

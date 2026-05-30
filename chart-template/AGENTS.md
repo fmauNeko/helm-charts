@@ -7,12 +7,12 @@
 
 ## Chart Identity
 
-| Field        | Value                                         |
-|--------------|-----------------------------------------------|
-| **Type**     | application                                   |
-| **Apps**     | `<APP_NAME>`                                  |
-| **Registry** | `<REGISTRY>` (e.g. `docker.io`, `ghcr.io`)   |
-| **Notes**    | `<Any special deployment notes>`              |
+| Field        | Value                                      |
+| ------------ | ------------------------------------------ |
+| **Type**     | application                                |
+| **Apps**     | `<APP_NAME>`                               |
+| **Registry** | `<REGISTRY>` (e.g. `docker.io`, `ghcr.io`) |
+| **Notes**    | `<Any special deployment notes>`           |
 
 ---
 
@@ -25,7 +25,7 @@ replicaCount: 1
 
 image:
   repository: <REGISTRY>/<APP_NAME>
-  tag: ""           # empty → uses Chart.AppVersion at render time
+  tag: '' # empty → uses Chart.AppVersion at render time
   pullPolicy: IfNotPresent
 
 service:
@@ -42,18 +42,18 @@ affinity: {}
 
 ## Key Value Paths
 
-| Path                  | Type    | Default         | Purpose                                     |
-|-----------------------|---------|-----------------|---------------------------------------------|
-| `replicaCount`        | int     | `1`             | Number of pod replicas                      |
-| `image.repository`    | string  | `<APP_NAME>`    | Container image repository                  |
-| `image.tag`           | string  | `""`            | Image tag; empty = use `Chart.AppVersion`   |
-| `image.pullPolicy`    | string  | `IfNotPresent`  | Kubernetes image pull policy                |
-| `service.type`        | string  | `ClusterIP`     | Kubernetes Service type                     |
-| `service.port`        | int     | `80`            | Service port                                |
-| `resources`           | object  | `{}`            | CPU/memory requests and limits              |
-| `nodeSelector`        | object  | `{}`            | Node selector constraints                   |
-| `tolerations`         | list    | `[]`            | Pod tolerations                             |
-| `affinity`            | object  | `{}`            | Pod affinity/anti-affinity rules            |
+| Path               | Type   | Default        | Purpose                                   |
+| ------------------ | ------ | -------------- | ----------------------------------------- |
+| `replicaCount`     | int    | `1`            | Number of pod replicas                    |
+| `image.repository` | string | `<APP_NAME>`   | Container image repository                |
+| `image.tag`        | string | `""`           | Image tag; empty = use `Chart.AppVersion` |
+| `image.pullPolicy` | string | `IfNotPresent` | Kubernetes image pull policy              |
+| `service.type`     | string | `ClusterIP`    | Kubernetes Service type                   |
+| `service.port`     | int    | `80`           | Service port                              |
+| `resources`        | object | `{}`           | CPU/memory requests and limits            |
+| `nodeSelector`     | object | `{}`           | Node selector constraints                 |
+| `tolerations`      | list   | `[]`           | Pod tolerations                           |
+| `affinity`         | object | `{}`           | Pod affinity/anti-affinity rules          |
 
 ---
 
@@ -65,7 +65,7 @@ Minimal `ci/install-values.yaml`:
 replicaCount: 1
 image:
   repository: <REGISTRY>/<APP_NAME>
-  tag: ""        # uses appVersion from Chart.yaml
+  tag: '' # uses appVersion from Chart.yaml
 service:
   port: 80
 ```
@@ -83,11 +83,11 @@ helm upgrade --install <CHART_NAME> ./charts/<CHART_NAME>/ \
 
 ## Template Files
 
-| File                          | Purpose                                                  |
-|-------------------------------|----------------------------------------------------------|
-| `templates/_helpers.tpl`      | Named template helpers (name, fullname, labels, image)   |
-| `templates/deployment.yaml`   | Core workload — one Deployment                           |
-| `tests/deployment_test.yaml`  | helm-unittest suite validating image resolution          |
+| File                         | Purpose                                                |
+| ---------------------------- | ------------------------------------------------------ |
+| `templates/_helpers.tpl`     | Named template helpers (name, fullname, labels, image) |
+| `templates/deployment.yaml`  | Core workload — one Deployment                         |
+| `tests/deployment_test.yaml` | helm-unittest suite validating image resolution        |
 
 ---
 
@@ -158,7 +158,7 @@ tests in CI (e.g. via `ct install`):
 replicaCount: 1
 image:
   repository: <REGISTRY>/<APP_NAME>
-  tag: ""
+  tag: ''
 ```
 
 The chart-testing (`ct`) tool picks up files matching `ci/*.yaml` automatically.

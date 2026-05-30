@@ -33,7 +33,7 @@ helm unittest charts/<name>/
 
 # Generate documentation and schemas
 helm-docs --chart-search-root charts/<name>
-helm schema -input charts/<name>/values.yaml
+helm schema -f charts/<name>/values.yaml --use-helm-docs
 ```
 
 ## Universal Conventions
@@ -90,7 +90,7 @@ Follow this 10-step sequence to add a chart:
 5. Generate schema and documentation:
    ```bash
    helm-docs --chart-search-root charts/<name>
-   helm schema -input charts/<name>/values.yaml
+   helm schema -f charts/<name>/values.yaml --use-helm-docs
    ```
 6. Register the package in Release Please configuration before making the commit:
    - In `release-please-config.json`, add the package under `packages`:

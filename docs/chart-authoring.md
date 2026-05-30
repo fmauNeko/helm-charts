@@ -61,7 +61,7 @@ README and schema files are generated automatically. Run these commands after ma
 
 ```bash
 helm-docs --chart-search-root charts/<name>
-helm schema -input charts/<name>/values.yaml -output charts/<name>/values.schema.json
+helm schema -f charts/<name>/values.yaml --use-helm-docs
 ```
 
 CI enforces that these files do not drift. If committed files differ from generated files, the `fixture` job fails.
