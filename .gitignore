@@ -1,3 +1,13 @@
 # Sisyphus
 .sisyphus/
 .ignore
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# Helm / chart-releaser build artifacts
+*.tgz
+dist/
+.cr-release-packages/
