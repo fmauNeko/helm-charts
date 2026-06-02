@@ -108,7 +108,7 @@ jobs:
           go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
           go install github.com/yannh/kubeconform/cmd/kubeconform@latest
           echo "$HOME/go/bin" >> "$GITHUB_PATH"
-          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 || true
+          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 --verify=false || true
           helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false || true
 
       - name: Lint chart template
@@ -154,7 +154,7 @@ jobs:
           go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
           go install github.com/yannh/kubeconform/cmd/kubeconform@latest
           echo "$HOME/go/bin" >> "$GITHUB_PATH"
-          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 || true
+          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 --verify=false || true
           helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false || true
 
       - name: Run chart-testing lint

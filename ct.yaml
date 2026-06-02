@@ -13,3 +13,8 @@ check-version-increment: true
 
 # Extra args passed to helm
 helm-extra-args: --timeout 600s
+
+# ct's bundled chart_schema.yaml / lintconf.yaml are absent in the binary-only install.
+# YAML and schema are already validated by yamllint, prettier, helm schema, and kubeconform.
+validate-chart-schema: false
+validate-yaml: false
