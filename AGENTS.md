@@ -73,9 +73,9 @@ appVersion: 'x.y.z'
 
 ## Chart Index
 
-| Chart    | Path | AGENTS.md                                            | Description             |
-| -------- | ---- | ---------------------------------------------------- | ----------------------- |
-| none yet | -    | [chart-template/AGENTS.md](chart-template/AGENTS.md) | Standard chart template |
+| Chart   | Path           | AGENTS.md                             | Description                       |
+| ------- | -------------- | ------------------------------------- | --------------------------------- |
+| netbird | charts/netbird | [AGENTS.md](charts/netbird/AGENTS.md) | NetBird mesh VPN — split topology |
 
 For detailed authoring guidelines, check [docs/chart-authoring.md](docs/chart-authoring.md).
 

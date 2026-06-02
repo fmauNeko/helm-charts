@@ -32,7 +32,23 @@ version: 0.1.0 # managed by Release Please, never edit manually
 appVersion: '<x.y.z>' # managed by Renovate, never edit manually
 ```
 
-For multi-image charts, add per-value `# renovate:` comments in `values.yaml` instead. This requires enabling the `helm-values` manager, which is disabled by default, document this as an exception.
+### Multi-image charts
+
+For charts that deploy multiple container images (e.g. `charts/netbird`), the `Chart.yaml` `appVersion` tracks the "primary" image version, and additional images are tracked per-value in `values.yaml` using per-value `# renovate:` comments.
+
+Each component image in `values.yaml` must have a `# renovate:` comment immediately above its `tag:` field:
+
+```yaml
+image:
+  # renovate: datasource=docker depName=netbirdio/signal versioning=docker
+  repository: 'netbirdio/signal'
+  # -- Image tag. Defaults to chart appVersion when empty.
+  tag: ''
+```
+
+A scoped custom regex manager in `renovate.json` picks up these comments for the specific chart's `values.yaml` (not globally, to avoid conflicts with the `helm-values` manager which remains disabled).
+
+**Important**: images that have an independent release track (e.g. a dashboard image with its own semver) MUST pin their `tag` explicitly and MUST NOT fall back to `.Chart.AppVersion`. The `_helpers.tpl` image helper should `fail` if such a tag is empty.
 
 ## 3. values.yaml Conventions
 
