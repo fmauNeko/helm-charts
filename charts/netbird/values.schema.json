@@ -113,7 +113,7 @@
                                     }
                                 },
                                 "extraConfig": {
-                                    "description": "Provider-specific extra config (e.g. Audience for auth0, AdminEndpoint for keycloak)",
+                                    "description": "Provider-specific extra config. Values support {{ .ENV_VAR }} placeholders for secrets.",
                                     "type": "object"
                                 },
                                 "managerType": {

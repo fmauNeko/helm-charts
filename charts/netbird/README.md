@@ -25,7 +25,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | auth.external.idpManager.clientConfig.grantType | string | `"client_credentials"` | Grant type for IdP management |
 | auth.external.idpManager.clientConfig.issuer | string | `""` | IdP issuer URL |
 | auth.external.idpManager.clientConfig.tokenEndpoint | string | `""` | IdP token endpoint |
-| auth.external.idpManager.extraConfig | object | `{}` | Provider-specific extra config (e.g. Audience for auth0, AdminEndpoint for keycloak) |
+| auth.external.idpManager.extraConfig | object | `{}` | The NB_ZITADEL_PAT env var must be present in the management Secret (via secrets.existingSecret or the auto-generated secret). |
 | auth.external.idpManager.managerType | string | `"none"` | IdP manager type: none, auth0, azure, keycloak, zitadel, authentik, okta, google, jumpcloud, pocketid, dex |
 | auth.external.pkceAuthFlow.providerConfig.audience | string | `""` | PKCE auth flow audience |
 | auth.external.pkceAuthFlow.providerConfig.authorizationEndpoint | string | `""` | PKCE auth flow authorization endpoint |

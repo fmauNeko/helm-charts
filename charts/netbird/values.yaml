@@ -56,7 +56,9 @@ auth:
         clientId: ''
         # -- Grant type for IdP management
         grantType: 'client_credentials'
-      # -- Provider-specific extra config (e.g. Audience for auth0, AdminEndpoint for keycloak)
+      # -- Provider-specific extra config. Values support {{ .ENV_VAR }} placeholders for secrets.
+      # -- For Zitadel: set ManagementEndpoint to https://<host>/management/v1 and PAT to {{ .NB_ZITADEL_PAT }}.
+      # -- The NB_ZITADEL_PAT env var must be present in the management Secret (via secrets.existingSecret or the auto-generated secret).
       extraConfig: {}
     deviceAuthFlow:
       providerConfig:
