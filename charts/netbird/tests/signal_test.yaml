@@ -1,0 +1,27 @@
+suite: signal workload
+templates:
+  - templates/signal/deployment.yaml
+  - templates/signal/service.yaml
+tests:
+  - it: signal gRPC service port named grpc on 10000
+    set:
+      auth.mode: external
+    template: templates/signal/service.yaml
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: grpc
+            port: 10000
+            protocol: TCP
+            targetPort: grpc
+
+  - it: signal image uses appVersion fallback
+    set:
+      auth.mode: external
+      signal.image.tag: ''
+    template: templates/signal/deployment.yaml
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: 'netbirdio/signal:0\.71\.4'

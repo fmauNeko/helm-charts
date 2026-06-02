@@ -1,0 +1,35 @@
+# Lock files
+pnpm-lock.yaml
+
+# Dependencies
+node_modules/
+
+# Sisyphus internal state
+.sisyphus/
+
+# Generated artifacts (do NOT format — drift-check would break)
+chart-template/README.md
+chart-template/values.schema.json
+charts/**/README.md
+charts/**/values.schema.json
+charts/**/CHANGELOG.md
+CHANGELOG.md
+
+# Helm chart archives
+*.tgz
+.cr-release-packages/
+dist/
+
+# Helm templates (Go template syntax, not valid YAML)
+chart-template/templates/
+charts/**/templates/
+*.tpl
+
+# Files with no prettier parser
+.gitattributes
+.npmrc
+.prettierignore
+.ignore
+CODEOWNERS
+.github/CODEOWNERS
+LICENSE

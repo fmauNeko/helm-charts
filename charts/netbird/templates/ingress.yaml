@@ -1,0 +1,134 @@
+{{- if .Values.ingress.enabled -}}
+{{- $host := .Values.global.host -}}
+{{- $mgmtHost := default $host .Values.global.management.host -}}
+{{- $signalHost := default $host .Values.global.signal.host -}}
+{{- $relayHost := default $host .Values.global.relay.host -}}
+{{- $dashHost := default $host .Values.global.dashboard.host -}}
+---
+# Dashboard + Management HTTP/API + OAuth2 Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "netbird.fullname" . }}
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ $dashHost | quote }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.management.fullname" . }}
+                port:
+                  name: http
+          {{- if eq .Values.auth.mode "embedded" }}
+          - path: /oauth2
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.management.fullname" . }}
+                port:
+                  name: http
+          {{- end }}
+          - path: /relay
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.relay.fullname" . }}
+                port:
+                  name: http
+          - path: /ws-proxy
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.relay.fullname" . }}
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.dashboard.fullname" . }}
+                port:
+                  name: http
+---
+# Management gRPC Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "netbird.management.fullname" . }}-grpc
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ $mgmtHost | quote }}
+      http:
+        paths:
+          - path: /management.ManagementService
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.management.fullname" . }}
+                port:
+                  name: grpc
+---
+# Signal gRPC Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "netbird.signal.fullname" . }}-grpc
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  {{- with .Values.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ $signalHost | quote }}
+      http:
+        paths:
+          - path: /signalexchange.SignalExchange
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.signal.fullname" . }}
+                port:
+                  name: grpc
+{{- end }}

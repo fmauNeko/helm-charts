@@ -1,0 +1,38 @@
+suite: relay workload
+templates:
+  - templates/relay/deployment.yaml
+  - templates/relay/service.yaml
+  - templates/relay/stun-service.yaml
+tests:
+  - it: STUN UDP service exists when stun enabled
+    set:
+      auth.mode: external
+      relay.stun.enabled: true
+    template: templates/relay/stun-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.ports[0].protocol
+          value: UDP
+
+  - it: STUN UDP service absent when stun disabled
+    set:
+      auth.mode: external
+      relay.stun.enabled: false
+    template: templates/relay/stun-service.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: NB_EXPOSED_ADDRESS env var is wired
+    set:
+      auth.mode: external
+      relay.exposedAddress: my-relay.example.com:443
+    template: templates/relay/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NB_EXPOSED_ADDRESS
+            value: 'my-relay.example.com:443'

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "3a52bc13b8ca11c6ebec26e9040c26efb487e424",
+  "include-component-in-tag": true,
+  "tag-separator": "-",
+  "separate-pull-requests": true,
+  "packages": {
+    "charts/netbird": {
+      "release-type": "helm",
+      "component": "netbird",
+      "package-name": "netbird"
+    }
+  }
+}

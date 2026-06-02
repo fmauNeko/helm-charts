@@ -1,0 +1,47 @@
+suite: pat seed bootstrap
+templates:
+  - templates/pat-seed/job.yaml
+  - templates/pat-seed/rbac.yaml
+  - templates/pat-seed/configmap.yaml
+tests:
+  - it: disabled renders nothing
+    set:
+      auth.mode: external
+      patSeed.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: enabled renders Job with hook annotation
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+    template: templates/pat-seed/job.yaml
+    asserts:
+      - isKind:
+          of: Job
+      - equal:
+          path: metadata.annotations["helm.sh/hook"]
+          value: post-install,post-upgrade
+
+  - it: job has activeDeadlineSeconds
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+    template: templates/pat-seed/job.yaml
+    asserts:
+      - isNotNullOrEmpty:
+          path: spec.activeDeadlineSeconds
+
+  - it: RBAC grants secrets access
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+    template: templates/pat-seed/rbac.yaml
+    asserts:
+      - contains:
+          path: rules[0].resources
+          content: secrets
+        documentSelector:
+          path: kind
+          value: Role

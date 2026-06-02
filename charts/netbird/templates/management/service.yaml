@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netbird.management.fullname" . }}
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: management
+spec:
+  type: {{ .Values.management.service.type }}
+  selector:
+    {{- include "netbird.management.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.management.service.httpPort }}
+      targetPort: http
+      protocol: TCP
+    - name: grpc
+      port: {{ .Values.management.service.grpcPort }}
+      targetPort: grpc
+      protocol: TCP

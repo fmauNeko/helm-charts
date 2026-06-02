@@ -1,0 +1,20 @@
+# chart-testing configuration
+# https://github.com/helm/chart-testing
+chart-dirs:
+  - charts
+
+target-branch: main
+
+# Do not validate chart maintainers (personal repo)
+validate-maintainers: false
+
+# Require chart version bumps on changes
+check-version-increment: true
+
+# Extra args passed to helm
+helm-extra-args: --timeout 600s
+
+# ct's bundled chart_schema.yaml / lintconf.yaml are absent in the binary-only install.
+# YAML and schema are already validated by yamllint, prettier, helm schema, and kubeconform.
+validate-chart-schema: false
+validate-yaml: false

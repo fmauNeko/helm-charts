@@ -1,0 +1,18 @@
+{{- if and .Values.management.persistence.enabled (not .Values.management.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "netbird.management.fullname" . }}
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: management
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.management.persistence.size }}
+  {{- if .Values.management.persistence.storageClass }}
+  storageClassName: {{ .Values.management.persistence.storageClass }}
+  {{- end }}
+{{- end }}

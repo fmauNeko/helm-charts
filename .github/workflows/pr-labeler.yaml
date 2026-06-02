@@ -1,0 +1,84 @@
+name: PR Labeler
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  lint-title:
+    name: Lint PR title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@0723387faaf9b38adef4775cd42cfd5155ed6017 # v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          validateSingleCommit: false
+          ignoreLabels: |
+            bot
+            ignore-semantic-pr
+
+  label:
+    name: Label PR by type
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const title = pr.title || '';
+            const typeMap = {
+              feat: 'enhancement',
+              fix: 'bug',
+              docs: 'documentation',
+              chore: 'chore',
+              build: 'chore',
+              ci: 'chore',
+              refactor: 'refactor',
+              test: 'test',
+              perf: 'enhancement',
+            };
+
+            // Extract type from Conventional Commit title: "type(scope): subject"
+            const match = title.match(/^([a-z]+)(?:\([^)]+\))?!?:/);
+            if (!match) return; // not a conventional commit title - lint-title will catch it
+
+            const type = match[1];
+            const label = typeMap[type];
+            if (!label) return;
+
+            // Check if label exists before applying
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: [label],
+              });
+            } catch (e) {
+              console.log(`Could not add label '${label}': ${e.message}`);
+            }
+
+            // Also label Renovate PRs
+            if (pr.user.login === 'renovate[bot]' || pr.user.login === 'renovate') {
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.issue.number,
+                  labels: ['dependencies'],
+                });
+              } catch (e) {
+                console.log(`Could not add dependencies label: ${e.message}`);
+              }
+            }

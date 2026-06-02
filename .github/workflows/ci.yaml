@@ -1,0 +1,223 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1' # Weekly Monday 6am UTC (for gated-install)
+  workflow_dispatch: # Manual trigger (for gated-install)
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  meta:
+    name: Meta checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@cdca7365b2dadb8aad0a33bc7601856ffabcc48e # v4
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - name: Install pnpm dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install meta tools
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          python -m pip install --user yamllint==1.38.0
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Check formatting
+        run: pnpm exec prettier --check .
+
+      - name: Lint YAML
+        run: yamllint -c .yamllint.yaml .github/ renovate.json release-please-config.json ct.yaml
+
+      - name: Lint GitHub Actions
+        run: actionlint
+
+      - name: Lint commits
+        if: github.event_name == 'pull_request'
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6
+
+  changed:
+    name: Detect changed charts
+    runs-on: ubuntu-latest
+    outputs:
+      charts_json: ${{ steps.charts.outputs.charts_json || '[]' }}
+      any: ${{ steps.charts.outputs.any || 'false' }}
+      template_changed: ${{ steps.charts.outputs.template_changed || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Install chart-testing
+        env:
+          CT_VERSION: '3.13.0'
+        run: |
+          curl -sSL "https://github.com/helm/chart-testing/releases/download/v${CT_VERSION}/chart-testing_${CT_VERSION}_linux_amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin ct
+
+      - name: List changed charts
+        id: charts
+        run: |
+          CHANGED=$(ct list-changed --config ct.yaml --target-branch "${{ github.event.pull_request.base.ref || 'main' }}" 2>/dev/null || echo "")
+          if [ -z "$CHANGED" ]; then
+            echo "charts_json=[]" >> "$GITHUB_OUTPUT"
+            echo "any=false" >> "$GITHUB_OUTPUT"
+          else
+            CHARTS_JSON=$(echo "$CHANGED" | jq -R . | jq -sc . 2>/dev/null || echo "[]")
+            echo "charts_json=${CHARTS_JSON}" >> "$GITHUB_OUTPUT"
+            echo "any=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          if git diff --name-only "${{ github.event.before }}" HEAD 2>/dev/null | grep -q '^chart-template/'; then
+            echo "template_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "template_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  fixture:
+    name: Chart template fixture
+    runs-on: ubuntu-latest
+    needs: changed
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+
+      - name: Install chart tools
+        run: |
+          go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
+          go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 --verify=false || true
+          helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false || true
+
+      - name: Lint chart template
+        run: helm lint --strict chart-template/
+
+      - name: Check chart template docs
+        run: helm-docs --chart-search-root chart-template && git diff --exit-code chart-template/README.md
+
+      - name: Check chart template schema
+        run: helm schema -f chart-template/values.yaml -o chart-template/values.schema.json --use-helm-docs && git diff --exit-code chart-template/values.schema.json
+
+      - name: Validate chart template manifests
+        run: helm template chart-template/ | kubeconform -strict -summary -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -
+
+      - name: Run chart template unit tests
+        run: helm unittest chart-template/
+
+  chart-lint-test:
+    name: Chart lint and test (${{ matrix.chart }})
+    runs-on: ubuntu-latest
+    needs: changed
+    if: needs.changed.outputs.any == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        chart: ${{ fromJSON(needs.changed.outputs.charts_json || '[]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+
+      - name: Install chart-testing
+        env:
+          CT_VERSION: '3.13.0'
+        run: |
+          curl -sSL "https://github.com/helm/chart-testing/releases/download/v${CT_VERSION}/chart-testing_${CT_VERSION}_linux_amd64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin ct
+
+      - name: Install chart tools
+        run: |
+          go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
+          go install github.com/yannh/kubeconform/cmd/kubeconform@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 --verify=false || true
+          helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false || true
+
+      - name: Run chart-testing lint
+        run: ct lint --config ct.yaml --charts "${{ matrix.chart }}"
+
+      - name: Run chart unit tests
+        run: |
+          if [ -d "${{ matrix.chart }}/tests" ]; then
+            helm unittest "${{ matrix.chart }}"
+          fi
+
+      - name: Check chart docs
+        run: helm-docs --chart-search-root "${{ matrix.chart }}" && git diff --exit-code "${{ matrix.chart }}/README.md"
+
+      - name: Check chart schema
+        run: helm schema -f "${{ matrix.chart }}/values.yaml" -o "${{ matrix.chart }}/values.schema.json" --use-helm-docs && git diff --exit-code "${{ matrix.chart }}/values.schema.json"
+
+      - name: Validate chart manifests
+        run: helm template "${{ matrix.chart }}" | kubeconform -strict -summary -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -
+
+  integration:
+    name: Integration dry-run
+    runs-on: ubuntu-latest
+    needs: changed
+    if: needs.changed.outputs.any == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+
+      - name: Set up kind
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
+
+      - name: Server dry-run changed charts
+        run: |
+          CHARTS='${{ needs.changed.outputs.charts_json }}'
+          echo "$CHARTS" | jq -r '.[]' | while IFS= read -r chart; do
+            helm template "$chart" | kubectl apply --dry-run=server -f -
+          done
+
+  gated-install:
+    name: Gated install
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run-integration'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4
+
+      - name: Set up kind
+        uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
+
+      - name: Install charts with CI values
+        run: |
+          find charts -path '*/ci/install-values.yaml' -print | sort | while IFS= read -r values_file; do
+            chart=${values_file%/ci/install-values.yaml}
+            helm install test-release "$chart" -f "$chart/ci/install-values.yaml" --wait
+            helm uninstall test-release --wait
+          done

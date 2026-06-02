@@ -1,0 +1,56 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Chart appVersion comment format: '# renovate: datasource=docker depName=<image> versioning=docker' on the line immediately above appVersion:",
+  "extends": [
+    "config:best-practices",
+    ":rebaseStalePrs",
+    ":semanticCommits",
+    ":automergeDigest",
+    ":automergeMinor"
+  ],
+  "customManagers": [
+    {
+      "description": "Update Helm chart appVersion from inline renovate comment",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)charts/[^/]+/Chart\\.yaml$/"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>[a-z0-9-]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?(?:\\s+extractVersion=(?<extractVersion>[^\\s]+))?\\s*\\r?\\nappVersion:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}"
+    },
+    {
+      "description": "Update NetBird chart image tags from inline renovate comments in values.yaml",
+      "customType": "regex",
+      "managerFilePatterns": ["/charts/netbird/values\\.yaml$/"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>[a-z0-9-]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?(?:\\s+extractVersion=(?<extractVersion>[^\\s]+))?\\s*\\r?\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "appVersion bumps must use fix(deps) so Release Please creates a patch chart release",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["charts/*/Chart.yaml"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "deps",
+      "commitMessageTopic": "{{depName}}"
+    },
+    {
+      "description": "Disable helm-values manager for values.yaml to avoid racing appVersion updates",
+      "matchManagers": ["helm-values"],
+      "matchFileNames": ["charts/*/values.yaml"],
+      "enabled": false
+    },
+    {
+      "description": "Per-image tag bumps in netbird values.yaml use fix(deps) semantics",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["charts/netbird/values.yaml"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "deps",
+      "commitMessageTopic": "{{depName}}"
+    }
+  ],
+  "ignorePaths": ["chart-template/**"]
+}

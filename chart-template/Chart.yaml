@@ -1,0 +1,7 @@
+apiVersion: v2
+name: chart-template
+description: Template for new Helm charts. Copy to charts/<name>/ and customize.
+type: application
+version: 0.1.0
+# renovate: datasource=docker depName=nginx versioning=docker
+appVersion: '1.27.0'

@@ -1,0 +1,34 @@
+suite: dashboard workload
+templates:
+  - templates/dashboard/deployment.yaml
+tests:
+  - it: embedded mode AUTH_AUTHORITY uses /oauth2 path
+    set:
+      auth.mode: embedded
+      global.host: netbird.example.com
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_AUTHORITY
+            value: 'https://netbird.example.com/oauth2'
+
+  - it: external mode AUTH_AUTHORITY uses values
+    set:
+      auth.mode: external
+      auth.external.authority: 'https://my-idp.example.com'
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: AUTH_AUTHORITY
+            value: 'https://my-idp.example.com'
+
+  - it: dashboard image uses its own tag not appVersion
+    set:
+      auth.mode: external
+      dashboard.image.tag: '2.38.1'
+    asserts:
+      - matchRegex:
+          path: spec.template.spec.containers[0].image
+          pattern: 'netbirdio/dashboard:2\.38\.1'
