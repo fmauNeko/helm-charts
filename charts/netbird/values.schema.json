@@ -161,11 +161,11 @@
                             }
                         },
                         "redirectUri": {
-                            "description": "Redirect URI after login",
+                            "description": "Redirect URI after login. Must be a path only (e.g. /nb-auth) — the dashboard JS prepends window.location.origin automatically.",
                             "type": "string"
                         },
                         "silentRedirectUri": {
-                            "description": "Silent redirect URI for token renewal",
+                            "description": "Silent redirect URI for token renewal. Must be a path only (e.g. /nb-silent-auth).",
                             "type": "string"
                         },
                         "supportedScopes": {

@@ -34,8 +34,8 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | auth.external.pkceAuthFlow.providerConfig.scope | string | `"openid"` | PKCE auth flow scope |
 | auth.external.pkceAuthFlow.providerConfig.tokenEndpoint | string | `""` | PKCE auth flow token endpoint |
 | auth.external.pkceAuthFlow.providerConfig.useIDToken | bool | `false` | Use ID token instead of access token |
-| auth.external.redirectUri | string | `""` | Redirect URI after login |
-| auth.external.silentRedirectUri | string | `""` | Silent redirect URI for token renewal |
+| auth.external.redirectUri | string | `"/nb-auth"` | Redirect URI after login. Must be a path only (e.g. /nb-auth) — the dashboard JS prepends window.location.origin automatically. |
+| auth.external.silentRedirectUri | string | `"/nb-silent-auth"` | Silent redirect URI for token renewal. Must be a path only (e.g. /nb-silent-auth). |
 | auth.external.supportedScopes | string | `"openid profile email offline_access"` | Supported OIDC scopes |
 | auth.external.tokenSource | string | `"accessToken"` | Token source: 'accessToken' or 'idToken' |
 | auth.external.useAuth0 | bool | `false` | Set to true only for Auth0 |
@@ -44,7 +44,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | dashboard.extraEnv | list | `[]` | Additional environment variables for dashboard container |
 | dashboard.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | dashboard.image.repository | string | `"netbirdio/dashboard"` | Dashboard image repository |
-| dashboard.image.tag | string | `"2.38.1"` | Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion. |
+| dashboard.image.tag | string | `"v2.38.1"` | Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion. |
 | dashboard.nodeSelector | object | `{}` | Node selector for dashboard pods |
 | dashboard.podAnnotations | object | `{}` | Pod annotations for dashboard |
 | dashboard.replicaCount | int | `1` | Number of dashboard replicas |

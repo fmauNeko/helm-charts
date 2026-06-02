@@ -36,10 +36,10 @@ auth:
     audience: ''
     # -- Supported OIDC scopes
     supportedScopes: 'openid profile email offline_access'
-    # -- Redirect URI after login
-    redirectUri: ''
-    # -- Silent redirect URI for token renewal
-    silentRedirectUri: ''
+    # -- Redirect URI after login. Must be a path only (e.g. /nb-auth) — the dashboard JS prepends window.location.origin automatically.
+    redirectUri: '/nb-auth'
+    # -- Silent redirect URI for token renewal. Must be a path only (e.g. /nb-silent-auth).
+    silentRedirectUri: '/nb-silent-auth'
     # -- Set to true only for Auth0
     useAuth0: false
     # -- Token source: 'accessToken' or 'idToken'
@@ -214,11 +214,11 @@ dashboard:
   # -- Number of dashboard replicas
   replicaCount: 1
   image:
-    # renovate: datasource=docker depName=netbirdio/dashboard versioning=docker
+    # renovate: datasource=docker depName=netbirdio/dashboard versioning=docker extractVersion=^v(?<version>.*)$
     # -- Dashboard image repository
     repository: 'netbirdio/dashboard'
     # -- Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion.
-    tag: '2.38.1'
+    tag: 'v2.38.1'
     # -- Image pull policy
     pullPolicy: IfNotPresent
   # -- Additional environment variables for dashboard container
