@@ -17,6 +17,15 @@
         "#\\s*renovate:\\s*datasource=(?<datasource>[a-z0-9-]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?(?:\\s+extractVersion=(?<extractVersion>[^\\s]+))?\\s*\\r?\\nappVersion:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}"
+    },
+    {
+      "description": "Update NetBird chart image tags from inline renovate comments in values.yaml",
+      "customType": "regex",
+      "managerFilePatterns": ["/charts/netbird/values\\.yaml$/"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>[a-z0-9-]+)\\s+depName=(?<depName>[^\\s]+)(?:\\s+packageName=(?<packageName>[^\\s]+))?(?:\\s+versioning=(?<versioning>[^\\s]+))?(?:\\s+extractVersion=(?<extractVersion>[^\\s]+))?\\s*\\r?\\n\\s+tag:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver-coerced{{/if}}"
     }
   ],
   "packageRules": [
@@ -33,7 +42,15 @@
       "matchManagers": ["helm-values"],
       "matchFileNames": ["charts/*/values.yaml"],
       "enabled": false
+    },
+    {
+      "description": "Per-image tag bumps in netbird values.yaml use fix(deps) semantics",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["charts/netbird/values.yaml"],
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "deps",
+      "commitMessageTopic": "{{depName}}"
     }
   ],
-  "ignorePaths": ["charts/*/values.yaml", "chart-template/**"]
+  "ignorePaths": ["chart-template/**"]
 }

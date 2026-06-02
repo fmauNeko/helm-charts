@@ -121,7 +121,7 @@ jobs:
         run: helm schema -f chart-template/values.yaml -o chart-template/values.schema.json --use-helm-docs && git diff --exit-code chart-template/values.schema.json
 
       - name: Validate chart template manifests
-        run: helm template chart-template/ | kubeconform -strict -summary -
+        run: helm template chart-template/ | kubeconform -strict -summary -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -
 
       - name: Run chart template unit tests
         run: helm unittest chart-template/
@@ -173,7 +173,7 @@ jobs:
         run: helm schema -f "${{ matrix.chart }}/values.yaml" -o "${{ matrix.chart }}/values.schema.json" --use-helm-docs && git diff --exit-code "${{ matrix.chart }}/values.schema.json"
 
       - name: Validate chart manifests
-        run: helm template "${{ matrix.chart }}" | kubeconform -strict -summary -
+        run: helm template "${{ matrix.chart }}" | kubeconform -strict -summary -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -
 
   integration:
     name: Integration dry-run
