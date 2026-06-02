@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netbird.signal.fullname" . }}
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal
+spec:
+  type: {{ .Values.signal.service.type }}
+  selector:
+    {{- include "netbird.signal.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: grpc
+      port: {{ .Values.signal.service.port }}
+      targetPort: grpc
+      protocol: TCP

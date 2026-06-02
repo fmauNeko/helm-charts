@@ -1,0 +1,20 @@
+suite: ingress
+templates:
+  - templates/ingress.yaml
+tests:
+  - it: disabled renders nothing
+    set:
+      auth.mode: external
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: enabled renders multiple Ingress objects
+    set:
+      auth.mode: external
+      ingress.enabled: true
+      global.host: netbird.example.com
+    asserts:
+      - isKind:
+          of: Ingress

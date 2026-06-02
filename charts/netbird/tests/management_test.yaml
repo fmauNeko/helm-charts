@@ -1,0 +1,82 @@
+suite: management workload
+templates:
+  - templates/management/deployment.yaml
+  - templates/management/service.yaml
+  - templates/management/serviceaccount.yaml
+  - templates/management/configmap.yaml
+  - templates/management/secret.yaml
+  - templates/management/pvc.yaml
+tests:
+  - it: has Recreate strategy
+    set:
+      auth.mode: external
+    template: templates/management/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+
+  - it: has grpc port on service
+    set:
+      auth.mode: external
+    template: templates/management/service.yaml
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: grpc
+            port: 33073
+            protocol: TCP
+            targetPort: grpc
+
+  - it: external mode has PKCEAuthorizationFlow not EmbeddedIdP
+    set:
+      auth.mode: external
+    template: templates/management/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["management.json"]
+          pattern: PKCEAuthorizationFlow
+      - notMatchRegex:
+          path: data["management.json"]
+          pattern: EmbeddedIdP
+
+  - it: embedded mode has EmbeddedIdP not IdpManagerConfig
+    set:
+      auth.mode: embedded
+      global.host: netbird.example.com
+    template: templates/management/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["management.json"]
+          pattern: EmbeddedIdP
+      - notMatchRegex:
+          path: data["management.json"]
+          pattern: IdpManagerConfig
+
+  - it: postgres store has Engine postgres in management.json
+    set:
+      auth.mode: external
+      store.engine: postgres
+    template: templates/management/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["management.json"]
+          pattern: '"Engine": "postgres"'
+
+  - it: existingSecret suppresses Secret creation
+    set:
+      auth.mode: external
+      secrets.existingSecret: my-existing-secret
+    template: templates/management/secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: invalid auth.mode fails template
+    set:
+      auth.mode: invalid
+    template: templates/management/deployment.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "auth.mode must be 'external' or 'embedded'"

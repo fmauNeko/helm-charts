@@ -1,0 +1,64 @@
+{{- if .Values.gateway.enabled -}}
+{{- $host := .Values.global.host -}}
+{{- $dashHost := default $host .Values.global.dashboard.host -}}
+{{- $mgmtHost := default $host .Values.global.management.host -}}
+{{- $relayHost := default $host .Values.global.relay.host -}}
+{{- $parentRef := .Values.gateway.parentRef -}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ include "netbird.fullname" . }}-dashboard
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: dashboard
+spec:
+  parentRefs:
+    - name: {{ $parentRef.name }}
+      {{- if $parentRef.namespace }}
+      namespace: {{ $parentRef.namespace }}
+      {{- end }}
+      {{- if $parentRef.sectionName }}
+      sectionName: {{ $parentRef.sectionName }}
+      {{- end }}
+  hostnames:
+    - {{ $dashHost | quote }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: {{ include "netbird.management.fullname" . }}
+          port: {{ .Values.management.service.httpPort }}
+    {{- if eq .Values.auth.mode "embedded" }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /oauth2
+      backendRefs:
+        - name: {{ include "netbird.management.fullname" . }}
+          port: {{ .Values.management.service.httpPort }}
+    {{- end }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /relay
+      backendRefs:
+        - name: {{ include "netbird.relay.fullname" . }}
+          port: {{ .Values.relay.service.port }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ws-proxy
+      backendRefs:
+        - name: {{ include "netbird.relay.fullname" . }}
+          port: {{ .Values.relay.service.port }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ include "netbird.dashboard.fullname" . }}
+          port: {{ .Values.dashboard.service.port }}
+{{- end }}

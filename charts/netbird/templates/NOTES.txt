@@ -1,0 +1,30 @@
+NetBird has been deployed!
+
+COMPONENTS:
+  Management:  http://{{ include "netbird.management.fullname" . }}:{{ .Values.management.service.httpPort }}
+  Signal:      {{ include "netbird.signal.fullname" . }}:{{ .Values.signal.service.port }} (gRPC)
+  Relay:       {{ include "netbird.relay.fullname" . }}:{{ .Values.relay.service.port }}
+  Dashboard:   http://{{ include "netbird.dashboard.fullname" . }}:{{ .Values.dashboard.service.port }}
+
+AUTH MODE: {{ .Values.auth.mode }}
+{{- if eq .Values.auth.mode "embedded" }}
+  Embedded Dex IdP: https://{{ .Values.global.host }}/oauth2
+  Dashboard:        https://{{ .Values.global.host }}/
+{{- else }}
+  OIDC Authority:   {{ .Values.auth.external.authority }}
+  Dashboard:        https://{{ .Values.global.host }}/
+{{- end }}
+
+⚠️  IMPORTANT: relay.exposedAddress is set to: {{ .Values.relay.exposedAddress }}
+   This MUST be the externally-reachable address of your relay server.
+   Peers use this address to connect. If it's wrong, peer connections will fail.
+
+⚠️  SECRET DELETION WARNING:
+   The chart auto-generates DataStoreEncryptionKey and relay/TURN secrets.
+   If you DELETE the '{{ include "netbird.management.fullname" . }}' Secret,
+   the management server will generate a NEW encryption key on restart.
+   The existing datastore will become UNREADABLE. Back up your Secret!
+
+{{- if .Values.patSeed.enabled }}
+PAT SEED: The bootstrap job will run to create the initial account and PAT.
+{{- end }}

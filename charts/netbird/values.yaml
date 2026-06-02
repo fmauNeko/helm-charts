@@ -1,0 +1,342 @@
+# yaml-language-server: $schema=./values.schema.json
+
+# Global settings
+global:
+  # -- Primary hostname for single-host path-based routing (e.g. netbird.example.com)
+  host: ''
+  # -- Image pull secrets applied to all pods
+  imagePullSecrets: []
+  # -- Per-component host overrides for split-host routing (leave empty to use global.host)
+  management:
+    # -- Management hostname override (empty = use global.host)
+    host: ''
+  # -- Per-component host overrides for split-host routing (leave empty to use global.host)
+  signal:
+    # -- Signal hostname override
+    host: ''
+  # -- Per-component host overrides for split-host routing (leave empty to use global.host)
+  relay:
+    # -- Relay hostname override
+    host: ''
+  # -- Per-component host overrides for split-host routing (leave empty to use global.host)
+  dashboard:
+    # -- Dashboard hostname override
+    host: ''
+
+# Authentication configuration
+auth:
+  # -- Auth mode: 'external' (bring-your-own OIDC) or 'embedded' (in-process Dex)
+  mode: 'external'
+  external:
+    # -- OIDC authority/issuer URL
+    authority: ''
+    # -- OIDC client ID for the dashboard
+    clientId: ''
+    # -- OIDC audience
+    audience: ''
+    # -- Supported OIDC scopes
+    supportedScopes: 'openid profile email offline_access'
+    # -- Redirect URI after login
+    redirectUri: ''
+    # -- Silent redirect URI for token renewal
+    silentRedirectUri: ''
+    # -- Set to true only for Auth0
+    useAuth0: false
+    # -- Token source: 'accessToken' or 'idToken'
+    tokenSource: 'accessToken'
+    idpManager:
+      # -- IdP manager type: none, auth0, azure, keycloak, zitadel, authentik, okta, google, jumpcloud, pocketid, dex
+      managerType: 'none'
+      clientConfig:
+        # -- IdP issuer URL
+        issuer: ''
+        # -- IdP token endpoint
+        tokenEndpoint: ''
+        # -- IdP client ID (M2M)
+        clientId: ''
+        # -- Grant type for IdP management
+        grantType: 'client_credentials'
+      # -- Provider-specific extra config (e.g. Audience for auth0, AdminEndpoint for keycloak)
+      extraConfig: {}
+    deviceAuthFlow:
+      providerConfig:
+        # -- Device auth flow client ID
+        clientId: ''
+        # -- Device auth flow audience
+        audience: ''
+        # -- Device auth flow scope
+        scope: 'openid'
+    pkceAuthFlow:
+      providerConfig:
+        # -- PKCE auth flow client ID
+        clientId: ''
+        # -- PKCE auth flow audience
+        audience: ''
+        # -- PKCE auth flow authorization endpoint
+        authorizationEndpoint: ''
+        # -- PKCE auth flow token endpoint
+        tokenEndpoint: ''
+        # -- PKCE auth flow scope
+        scope: 'openid'
+        # -- PKCE redirect URIs
+        redirectURLs: []
+        # -- Use ID token instead of access token
+        useIDToken: false
+  embedded:
+    # -- Embedded Dex issuer URL (defaults to https://<global.host>/oauth2 if empty)
+    issuer: ''
+    storage:
+      # -- Dex storage type: sqlite3 or postgres
+      type: 'sqlite3'
+      # -- Dex postgres DSN (used when storage.type=postgres; referenced via {{ .NB_DEX_STORE_DSN }} placeholder)
+      dsn: ''
+    # -- CLI redirect URIs for embedded Dex
+    cliRedirectURIs:
+      - 'http://localhost:53000/'
+      - 'http://localhost:54000/'
+    # -- Disable local username/password authentication (requires external connector)
+    localAuthDisabled: false
+    owner:
+      # -- Initial owner email
+      email: ''
+      # -- Initial owner username
+      username: ''
+
+# Management server configuration
+management:
+  # -- Number of management replicas (always 1 — Recreate strategy required for SQLite)
+  replicaCount: 1
+  image:
+    # renovate: datasource=docker depName=netbirdio/management versioning=docker
+    # -- Management image repository
+    repository: 'netbirdio/management'
+    # -- Management image tag. Defaults to chart appVersion when empty.
+    tag: ''
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Resource requests/limits for management
+  resources: {}
+  persistence:
+    # -- Enable persistent storage for management data directory
+    enabled: true
+    # -- Storage size for management datadir
+    size: '1Gi'
+    # -- Storage class (empty = cluster default)
+    storageClass: ''
+    # -- Use an existing PVC instead of creating one
+    existingClaim: ''
+  service:
+    # -- Management service type
+    type: ClusterIP
+    # -- Management HTTP port
+    httpPort: 80
+    # -- Management gRPC port
+    grpcPort: 33073
+  # -- Pod annotations for management
+  podAnnotations: {}
+  # -- Node selector for management pods
+  nodeSelector: {}
+  # -- Tolerations for management pods
+  tolerations: []
+  # -- Affinity rules for management pods
+  affinity: {}
+
+# Signal server configuration
+signal:
+  # -- Number of signal replicas
+  replicaCount: 1
+  image:
+    # renovate: datasource=docker depName=netbirdio/signal versioning=docker
+    # -- Signal image repository
+    repository: 'netbirdio/signal'
+    # -- Signal image tag. Defaults to chart appVersion when empty.
+    tag: ''
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Resource requests/limits for signal
+  resources: {}
+  service:
+    # -- Signal service type
+    type: ClusterIP
+    # -- Signal gRPC port
+    port: 10000
+  # -- Pod annotations for signal
+  podAnnotations: {}
+  # -- Node selector for signal pods
+  nodeSelector: {}
+  # -- Tolerations for signal pods
+  tolerations: []
+  # -- Affinity rules for signal pods
+  affinity: {}
+
+# Relay server configuration
+relay:
+  # -- Number of relay replicas
+  replicaCount: 1
+  image:
+    # renovate: datasource=docker depName=netbirdio/relay versioning=docker
+    # -- Relay image repository
+    repository: 'netbirdio/relay'
+    # -- Relay image tag. Defaults to chart appVersion when empty.
+    tag: ''
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- REQUIRED: Externally reachable relay address (e.g. relay.example.com:443). Must be set for peers to connect.
+  exposedAddress: 'relay.example.com:443'
+  # -- Relay log level
+  logLevel: 'info'
+  stun:
+    # -- Enable embedded STUN server in relay
+    enabled: true
+    service:
+      # -- STUN UDP Service type (LoadBalancer or NodePort)
+      type: LoadBalancer
+      # -- STUN port
+      port: 3478
+  # -- Resource requests/limits for relay
+  resources: {}
+  service:
+    # -- Relay service type
+    type: ClusterIP
+    # -- Relay HTTP/WebSocket port
+    port: 443
+  # -- Pod annotations for relay
+  podAnnotations: {}
+  # -- Node selector for relay pods
+  nodeSelector: {}
+  # -- Tolerations for relay pods
+  tolerations: []
+  # -- Affinity rules for relay pods
+  affinity: {}
+
+# Dashboard configuration
+dashboard:
+  # -- Number of dashboard replicas
+  replicaCount: 1
+  image:
+    # renovate: datasource=docker depName=netbirdio/dashboard versioning=docker
+    # -- Dashboard image repository
+    repository: 'netbirdio/dashboard'
+    # -- Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion.
+    tag: '2.38.1'
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Additional environment variables for dashboard container
+  extraEnv: []
+  # -- Resource requests/limits for dashboard
+  resources: {}
+  service:
+    # -- Dashboard service type
+    type: ClusterIP
+    # -- Dashboard HTTP port
+    port: 80
+  # -- Pod annotations for dashboard
+  podAnnotations: {}
+  # -- Node selector for dashboard pods
+  nodeSelector: {}
+  # -- Tolerations for dashboard pods
+  tolerations: []
+  # -- Affinity rules for dashboard pods
+  affinity: {}
+
+# Data store configuration
+store:
+  # -- Storage engine: sqlite (default), postgres, or mysql
+  engine: 'sqlite'
+  postgres:
+    # -- PostgreSQL DSN for main datastore (injected as NB_STORE_ENGINE_POSTGRES_DSN env var)
+    dsn: ''
+  mysql:
+    # -- MySQL DSN for main datastore (injected as NB_STORE_ENGINE_MYSQL_DSN env var)
+    dsn: ''
+
+# Management config overrides (maps to management.json fields)
+managementConfig:
+  # -- STUN servers list
+  stuns: []
+  turn:
+    # -- TURN credential TTL (e.g. '86400s')
+    credentialsTTL: '86400s'
+    # -- Use time-based credentials for TURN
+    timeBasedCredentials: false
+    # -- External TURN servers list
+    turns: []
+  relay:
+    # -- External relay addresses (if not using this chart's relay)
+    addresses: []
+  reverseProxy:
+    # -- Trusted HTTP proxy CIDR blocks
+    trustedHTTPProxies: []
+    # -- Trusted peers for reverse proxy
+    trustedPeers: []
+  # -- Disable NetBird default allow-all policy
+  disableDefaultPolicy: false
+
+# Secret management
+secrets:
+  # -- Use an existing Secret instead of creating one. Secret must contain all required env vars.
+  existingSecret: ''
+
+# Metrics and monitoring
+metrics:
+  serviceMonitor:
+    # -- Enable Prometheus ServiceMonitor (requires Prometheus Operator)
+    enabled: false
+    # -- Scrape interval
+    interval: '30s'
+    # -- Additional labels for ServiceMonitor
+    labels: {}
+
+# Ingress configuration
+ingress:
+  # -- Enable Ingress resources
+  enabled: true
+  # -- Ingress class name
+  className: ''
+  # -- Additional ingress annotations
+  annotations: {}
+  # -- TLS configuration
+  tls: []
+
+# Gateway API configuration (HTTPRoute/GRPCRoute)
+gateway:
+  # -- Enable Gateway API routes (requires Gateway API CRDs)
+  enabled: false
+  parentRef:
+    # -- Gateway name to attach routes to
+    name: ''
+    # -- Gateway namespace
+    namespace: ''
+    # -- Gateway section name
+    sectionName: ''
+
+# PAT seed bootstrap job
+patSeed:
+  # -- Enable the PAT seed bootstrap Job (creates initial account + PAT via native /api/setup endpoint)
+  enabled: false
+  image:
+    # renovate: datasource=docker depName=curlimages/curl versioning=docker
+    # -- Image for the PAT seed job (needs curl + sh)
+    repository: 'curlimages/curl'
+    # -- PAT seed job image tag
+    tag: '8.11.1'
+    # -- Image pull policy
+    pullPolicy: IfNotPresent
+  # -- Maximum time in seconds before the Job is terminated
+  activeDeadlineSeconds: 300
+  # -- Initial owner email
+  adminEmail: ''
+  # -- Initial owner password used for POST /api/setup. Prefer setting through an external values file or secret management workflow.
+  adminPassword: ''
+  # -- Seed the default All group and allow-all policy
+  seedDefaultResources: true
+
+# ServiceAccount settings
+serviceAccount:
+  # -- Create a ServiceAccount for each component
+  create: true
+  # -- Annotations to add to service accounts
+  annotations: {}
+
+# -- Extra Kubernetes manifests to deploy (raw YAML, processed with tpl)
+extraManifests: []

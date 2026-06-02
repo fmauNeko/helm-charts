@@ -1,0 +1,756 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "auth": {
+            "type": "object",
+            "properties": {
+                "embedded": {
+                    "type": "object",
+                    "properties": {
+                        "cliRedirectURIs": {
+                            "description": "CLI redirect URIs for embedded Dex",
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "issuer": {
+                            "description": "Embedded Dex issuer URL (defaults to https://\u003cglobal.host\u003e/oauth2 if empty)",
+                            "type": "string"
+                        },
+                        "localAuthDisabled": {
+                            "description": "Disable local username/password authentication (requires external connector)",
+                            "type": "boolean"
+                        },
+                        "owner": {
+                            "type": "object",
+                            "properties": {
+                                "email": {
+                                    "description": "Initial owner email",
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "description": "Initial owner username",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "storage": {
+                            "type": "object",
+                            "properties": {
+                                "dsn": {
+                                    "description": "Dex postgres DSN (used when storage.type=postgres; referenced via {{ .NB_DEX_STORE_DSN }} placeholder)",
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "description": "Dex storage type: sqlite3 or postgres",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "external": {
+                    "type": "object",
+                    "properties": {
+                        "audience": {
+                            "description": "OIDC audience",
+                            "type": "string"
+                        },
+                        "authority": {
+                            "description": "OIDC authority/issuer URL",
+                            "type": "string"
+                        },
+                        "clientId": {
+                            "description": "OIDC client ID for the dashboard",
+                            "type": "string"
+                        },
+                        "deviceAuthFlow": {
+                            "type": "object",
+                            "properties": {
+                                "providerConfig": {
+                                    "type": "object",
+                                    "properties": {
+                                        "audience": {
+                                            "description": "Device auth flow audience",
+                                            "type": "string"
+                                        },
+                                        "clientId": {
+                                            "description": "Device auth flow client ID",
+                                            "type": "string"
+                                        },
+                                        "scope": {
+                                            "description": "Device auth flow scope",
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "idpManager": {
+                            "type": "object",
+                            "properties": {
+                                "clientConfig": {
+                                    "type": "object",
+                                    "properties": {
+                                        "clientId": {
+                                            "description": "IdP client ID (M2M)",
+                                            "type": "string"
+                                        },
+                                        "grantType": {
+                                            "description": "Grant type for IdP management",
+                                            "type": "string"
+                                        },
+                                        "issuer": {
+                                            "description": "IdP issuer URL",
+                                            "type": "string"
+                                        },
+                                        "tokenEndpoint": {
+                                            "description": "IdP token endpoint",
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "extraConfig": {
+                                    "description": "Provider-specific extra config (e.g. Audience for auth0, AdminEndpoint for keycloak)",
+                                    "type": "object"
+                                },
+                                "managerType": {
+                                    "description": "IdP manager type: none, auth0, azure, keycloak, zitadel, authentik, okta, google, jumpcloud, pocketid, dex",
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "pkceAuthFlow": {
+                            "type": "object",
+                            "properties": {
+                                "providerConfig": {
+                                    "type": "object",
+                                    "properties": {
+                                        "audience": {
+                                            "description": "PKCE auth flow audience",
+                                            "type": "string"
+                                        },
+                                        "authorizationEndpoint": {
+                                            "description": "PKCE auth flow authorization endpoint",
+                                            "type": "string"
+                                        },
+                                        "clientId": {
+                                            "description": "PKCE auth flow client ID",
+                                            "type": "string"
+                                        },
+                                        "redirectURLs": {
+                                            "description": "PKCE redirect URIs",
+                                            "type": "array"
+                                        },
+                                        "scope": {
+                                            "description": "PKCE auth flow scope",
+                                            "type": "string"
+                                        },
+                                        "tokenEndpoint": {
+                                            "description": "PKCE auth flow token endpoint",
+                                            "type": "string"
+                                        },
+                                        "useIDToken": {
+                                            "description": "Use ID token instead of access token",
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "redirectUri": {
+                            "description": "Redirect URI after login",
+                            "type": "string"
+                        },
+                        "silentRedirectUri": {
+                            "description": "Silent redirect URI for token renewal",
+                            "type": "string"
+                        },
+                        "supportedScopes": {
+                            "description": "Supported OIDC scopes",
+                            "type": "string"
+                        },
+                        "tokenSource": {
+                            "description": "Token source: 'accessToken' or 'idToken'",
+                            "type": "string"
+                        },
+                        "useAuth0": {
+                            "description": "Set to true only for Auth0",
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "mode": {
+                    "description": "Auth mode: 'external' (bring-your-own OIDC) or 'embedded' (in-process Dex)",
+                    "type": "string"
+                }
+            }
+        },
+        "dashboard": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "description": "Affinity rules for dashboard pods",
+                    "type": "object"
+                },
+                "extraEnv": {
+                    "description": "Additional environment variables for dashboard container",
+                    "type": "array"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "pullPolicy": {
+                            "description": "Image pull policy",
+                            "type": "string"
+                        },
+                        "repository": {
+                            "description": "Dashboard image repository",
+                            "type": "string"
+                        },
+                        "tag": {
+                            "description": "Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "description": "Node selector for dashboard pods",
+                    "type": "object"
+                },
+                "podAnnotations": {
+                    "description": "Pod annotations for dashboard",
+                    "type": "object"
+                },
+                "replicaCount": {
+                    "description": "Number of dashboard replicas",
+                    "type": "integer"
+                },
+                "resources": {
+                    "description": "Resource requests/limits for dashboard",
+                    "type": "object"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "description": "Dashboard HTTP port",
+                            "type": "integer"
+                        },
+                        "type": {
+                            "description": "Dashboard service type",
+                            "type": "string"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "description": "Tolerations for dashboard pods",
+                    "type": "array"
+                }
+            }
+        },
+        "extraManifests": {
+            "description": "Extra Kubernetes manifests to deploy (raw YAML, processed with tpl)",
+            "type": "array"
+        },
+        "gateway": {
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "description": "Enable Gateway API routes (requires Gateway API CRDs)",
+                    "type": "boolean"
+                },
+                "parentRef": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "description": "Gateway name to attach routes to",
+                            "type": "string"
+                        },
+                        "namespace": {
+                            "description": "Gateway namespace",
+                            "type": "string"
+                        },
+                        "sectionName": {
+                            "description": "Gateway section name",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "global": {
+            "type": "object",
+            "properties": {
+                "dashboard": {
+                    "description": "Per-component host overrides for split-host routing (leave empty to use global.host)",
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "description": "Dashboard hostname override",
+                            "type": "string"
+                        }
+                    }
+                },
+                "host": {
+                    "description": "Primary hostname for single-host path-based routing (e.g. netbird.example.com)",
+                    "type": "string"
+                },
+                "imagePullSecrets": {
+                    "description": "Image pull secrets applied to all pods",
+                    "type": "array"
+                },
+                "management": {
+                    "description": "Per-component host overrides for split-host routing (leave empty to use global.host)",
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "description": "Management hostname override (empty = use global.host)",
+                            "type": "string"
+                        }
+                    }
+                },
+                "relay": {
+                    "description": "Per-component host overrides for split-host routing (leave empty to use global.host)",
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "description": "Relay hostname override",
+                            "type": "string"
+                        }
+                    }
+                },
+                "signal": {
+                    "description": "Per-component host overrides for split-host routing (leave empty to use global.host)",
+                    "type": "object",
+                    "properties": {
+                        "host": {
+                            "description": "Signal hostname override",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "ingress": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "description": "Additional ingress annotations",
+                    "type": "object"
+                },
+                "className": {
+                    "description": "Ingress class name",
+                    "type": "string"
+                },
+                "enabled": {
+                    "description": "Enable Ingress resources",
+                    "type": "boolean"
+                },
+                "tls": {
+                    "description": "TLS configuration",
+                    "type": "array"
+                }
+            }
+        },
+        "management": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "description": "Affinity rules for management pods",
+                    "type": "object"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "pullPolicy": {
+                            "description": "Image pull policy",
+                            "type": "string"
+                        },
+                        "repository": {
+                            "description": "Management image repository",
+                            "type": "string"
+                        },
+                        "tag": {
+                            "description": "Management image tag. Defaults to chart appVersion when empty.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "description": "Node selector for management pods",
+                    "type": "object"
+                },
+                "persistence": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "description": "Enable persistent storage for management data directory",
+                            "type": "boolean"
+                        },
+                        "existingClaim": {
+                            "description": "Use an existing PVC instead of creating one",
+                            "type": "string"
+                        },
+                        "size": {
+                            "description": "Storage size for management datadir",
+                            "type": "string"
+                        },
+                        "storageClass": {
+                            "description": "Storage class (empty = cluster default)",
+                            "type": "string"
+                        }
+                    }
+                },
+                "podAnnotations": {
+                    "description": "Pod annotations for management",
+                    "type": "object"
+                },
+                "replicaCount": {
+                    "description": "Number of management replicas (always 1 — Recreate strategy required for SQLite)",
+                    "type": "integer"
+                },
+                "resources": {
+                    "description": "Resource requests/limits for management",
+                    "type": "object"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "grpcPort": {
+                            "description": "Management gRPC port",
+                            "type": "integer"
+                        },
+                        "httpPort": {
+                            "description": "Management HTTP port",
+                            "type": "integer"
+                        },
+                        "type": {
+                            "description": "Management service type",
+                            "type": "string"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "description": "Tolerations for management pods",
+                    "type": "array"
+                }
+            }
+        },
+        "managementConfig": {
+            "type": "object",
+            "properties": {
+                "disableDefaultPolicy": {
+                    "description": "Disable NetBird default allow-all policy",
+                    "type": "boolean"
+                },
+                "relay": {
+                    "type": "object",
+                    "properties": {
+                        "addresses": {
+                            "description": "External relay addresses (if not using this chart's relay)",
+                            "type": "array"
+                        }
+                    }
+                },
+                "reverseProxy": {
+                    "type": "object",
+                    "properties": {
+                        "trustedHTTPProxies": {
+                            "description": "Trusted HTTP proxy CIDR blocks",
+                            "type": "array"
+                        },
+                        "trustedPeers": {
+                            "description": "Trusted peers for reverse proxy",
+                            "type": "array"
+                        }
+                    }
+                },
+                "stuns": {
+                    "description": "STUN servers list",
+                    "type": "array"
+                },
+                "turn": {
+                    "type": "object",
+                    "properties": {
+                        "credentialsTTL": {
+                            "description": "TURN credential TTL (e.g. '86400s')",
+                            "type": "string"
+                        },
+                        "timeBasedCredentials": {
+                            "description": "Use time-based credentials for TURN",
+                            "type": "boolean"
+                        },
+                        "turns": {
+                            "description": "External TURN servers list",
+                            "type": "array"
+                        }
+                    }
+                }
+            }
+        },
+        "metrics": {
+            "type": "object",
+            "properties": {
+                "serviceMonitor": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "description": "Enable Prometheus ServiceMonitor (requires Prometheus Operator)",
+                            "type": "boolean"
+                        },
+                        "interval": {
+                            "description": "Scrape interval",
+                            "type": "string"
+                        },
+                        "labels": {
+                            "description": "Additional labels for ServiceMonitor",
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "patSeed": {
+            "type": "object",
+            "properties": {
+                "activeDeadlineSeconds": {
+                    "description": "Maximum time in seconds before the Job is terminated",
+                    "type": "integer"
+                },
+                "adminEmail": {
+                    "description": "Initial owner email",
+                    "type": "string"
+                },
+                "adminPassword": {
+                    "description": "Initial owner password used for POST /api/setup. Prefer setting through an external values file or secret management workflow.",
+                    "type": "string"
+                },
+                "enabled": {
+                    "description": "Enable the PAT seed bootstrap Job (creates initial account + PAT via native /api/setup endpoint)",
+                    "type": "boolean"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "pullPolicy": {
+                            "description": "Image pull policy",
+                            "type": "string"
+                        },
+                        "repository": {
+                            "description": "Image for the PAT seed job (needs curl + sh)",
+                            "type": "string"
+                        },
+                        "tag": {
+                            "description": "PAT seed job image tag",
+                            "type": "string"
+                        }
+                    }
+                },
+                "seedDefaultResources": {
+                    "description": "Seed the default All group and allow-all policy",
+                    "type": "boolean"
+                }
+            }
+        },
+        "relay": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "description": "Affinity rules for relay pods",
+                    "type": "object"
+                },
+                "exposedAddress": {
+                    "description": "REQUIRED: Externally reachable relay address (e.g. relay.example.com:443). Must be set for peers to connect.",
+                    "type": "string"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "pullPolicy": {
+                            "description": "Image pull policy",
+                            "type": "string"
+                        },
+                        "repository": {
+                            "description": "Relay image repository",
+                            "type": "string"
+                        },
+                        "tag": {
+                            "description": "Relay image tag. Defaults to chart appVersion when empty.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "logLevel": {
+                    "description": "Relay log level",
+                    "type": "string"
+                },
+                "nodeSelector": {
+                    "description": "Node selector for relay pods",
+                    "type": "object"
+                },
+                "podAnnotations": {
+                    "description": "Pod annotations for relay",
+                    "type": "object"
+                },
+                "replicaCount": {
+                    "description": "Number of relay replicas",
+                    "type": "integer"
+                },
+                "resources": {
+                    "description": "Resource requests/limits for relay",
+                    "type": "object"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "description": "Relay HTTP/WebSocket port",
+                            "type": "integer"
+                        },
+                        "type": {
+                            "description": "Relay service type",
+                            "type": "string"
+                        }
+                    }
+                },
+                "stun": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "description": "Enable embedded STUN server in relay",
+                            "type": "boolean"
+                        },
+                        "service": {
+                            "type": "object",
+                            "properties": {
+                                "port": {
+                                    "description": "STUN port",
+                                    "type": "integer"
+                                },
+                                "type": {
+                                    "description": "STUN UDP Service type (LoadBalancer or NodePort)",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "tolerations": {
+                    "description": "Tolerations for relay pods",
+                    "type": "array"
+                }
+            }
+        },
+        "secrets": {
+            "type": "object",
+            "properties": {
+                "existingSecret": {
+                    "description": "Use an existing Secret instead of creating one. Secret must contain all required env vars.",
+                    "type": "string"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "description": "Annotations to add to service accounts",
+                    "type": "object"
+                },
+                "create": {
+                    "description": "Create a ServiceAccount for each component",
+                    "type": "boolean"
+                }
+            }
+        },
+        "signal": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "description": "Affinity rules for signal pods",
+                    "type": "object"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "pullPolicy": {
+                            "description": "Image pull policy",
+                            "type": "string"
+                        },
+                        "repository": {
+                            "description": "Signal image repository",
+                            "type": "string"
+                        },
+                        "tag": {
+                            "description": "Signal image tag. Defaults to chart appVersion when empty.",
+                            "type": "string"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "description": "Node selector for signal pods",
+                    "type": "object"
+                },
+                "podAnnotations": {
+                    "description": "Pod annotations for signal",
+                    "type": "object"
+                },
+                "replicaCount": {
+                    "description": "Number of signal replicas",
+                    "type": "integer"
+                },
+                "resources": {
+                    "description": "Resource requests/limits for signal",
+                    "type": "object"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "port": {
+                            "description": "Signal gRPC port",
+                            "type": "integer"
+                        },
+                        "type": {
+                            "description": "Signal service type",
+                            "type": "string"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "description": "Tolerations for signal pods",
+                    "type": "array"
+                }
+            }
+        },
+        "store": {
+            "type": "object",
+            "properties": {
+                "engine": {
+                    "description": "Storage engine: sqlite (default), postgres, or mysql",
+                    "type": "string"
+                },
+                "mysql": {
+                    "type": "object",
+                    "properties": {
+                        "dsn": {
+                            "description": "MySQL DSN for main datastore (injected as NB_STORE_ENGINE_MYSQL_DSN env var)",
+                            "type": "string"
+                        }
+                    }
+                },
+                "postgres": {
+                    "type": "object",
+                    "properties": {
+                        "dsn": {
+                            "description": "PostgreSQL DSN for main datastore (injected as NB_STORE_ENGINE_POSTGRES_DSN env var)",
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

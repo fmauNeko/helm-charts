@@ -1,0 +1,31 @@
+suite: gateway api routes
+templates:
+  - templates/gateway/httproute.yaml
+  - templates/gateway/grpcroute.yaml
+tests:
+  - it: default render produces no gateway resources
+    set:
+      auth.mode: external
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: enabled renders HTTPRoute
+    set:
+      auth.mode: external
+      gateway.enabled: true
+      gateway.parentRef.name: main
+    template: templates/gateway/httproute.yaml
+    asserts:
+      - isKind:
+          of: HTTPRoute
+
+  - it: enabled renders GRPCRoutes
+    set:
+      auth.mode: external
+      gateway.enabled: true
+      gateway.parentRef.name: main
+    template: templates/gateway/grpcroute.yaml
+    asserts:
+      - isKind:
+          of: GRPCRoute

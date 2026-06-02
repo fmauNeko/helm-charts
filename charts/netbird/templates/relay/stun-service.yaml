@@ -1,0 +1,18 @@
+{{- if .Values.relay.stun.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netbird.relay.fullname" . }}-stun
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: relay
+spec:
+  type: {{ .Values.relay.stun.service.type }}
+  selector:
+    {{- include "netbird.relay.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: stun
+      port: {{ .Values.relay.stun.service.port }}
+      targetPort: stun-udp
+      protocol: UDP
+{{- end }}

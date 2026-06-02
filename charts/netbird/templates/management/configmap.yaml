@@ -1,0 +1,99 @@
+{{- if not (or (eq .Values.auth.mode "external") (eq .Values.auth.mode "embedded")) -}}
+{{- fail "auth.mode must be 'external' or 'embedded'" -}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: '{{ include "netbird.management.fullname" . }}'
+  labels:
+    helm.sh/chart: '{{ include "netbird.chart" . }}'
+    app.kubernetes.io/name: '{{ include "netbird.name" . }}'
+    app.kubernetes.io/instance: '{{ .Release.Name }}'
+    app.kubernetes.io/managed-by: '{{ .Release.Service }}'
+    app.kubernetes.io/component: management
+data:
+  management.json: |
+    {
+      "Datadir": "/var/lib/netbird",
+      "DataStoreEncryptionKey": "{{`{{ .NB_DATASTORE_ENC_KEY }}`}}",
+      "Stuns": {{ default (list) .Values.managementConfig.stuns | toJson }},
+      "TURNConfig": {
+        "Turns": {{ default (list) .Values.managementConfig.turn.turns | toJson }},
+        "CredentialsTTL": {{ .Values.managementConfig.turn.credentialsTTL | toJson }},
+        "Secret": "{{`{{ .NB_TURN_SECRET }}`}}",
+        "TimeBasedCredentials": {{ .Values.managementConfig.turn.timeBasedCredentials }}
+      },
+      "Relay": {
+        "Addresses": {{ if .Values.managementConfig.relay.addresses }}{{ .Values.managementConfig.relay.addresses | toJson }}{{ else }}{{ list (printf "wss://%s:443" (include "netbird.relay.fullname" .)) | toJson }}{{ end }},
+        "CredentialsTTL": "86400s",
+        "Secret": "{{`{{ .NB_RELAY_SECRET }}`}}"
+      },
+      "Signal": {
+        "Proto": "https",
+        "URI": {{ printf "%s:10000" (include "netbird.signal.fullname" .) | toJson }}
+      },
+      "StoreConfig": {
+        "Engine": {{ .Values.store.engine | toJson }}
+      },
+      "ReverseProxy": {
+        "TrustedHTTPProxies": {{ default (list) .Values.managementConfig.reverseProxy.trustedHTTPProxies | toJson }},
+        "TrustedPeers": {{ default (list) .Values.managementConfig.reverseProxy.trustedPeers | toJson }}
+      },
+      "DisableDefaultPolicy": {{ .Values.managementConfig.disableDefaultPolicy }},
+    {{ if eq .Values.auth.mode "external" }}
+      "HttpConfig": {
+        "AuthIssuer": {{ .Values.auth.external.authority | toJson }},
+        "AuthAudience": {{ .Values.auth.external.audience | toJson }},
+        "AuthClientID": {{ .Values.auth.external.clientId | toJson }},
+        "AuthUserIDClaim": "sub",
+        "AuthKeysLocation": {{ printf "%s/keys" .Values.auth.external.authority | toJson }},
+        "OIDCConfigEndpoint": {{ printf "%s/.well-known/openid-configuration" .Values.auth.external.authority | toJson }},
+        "IdpSignKeyRefreshEnabled": true
+      },
+      "IdpManagerConfig": {
+        "ManagerType": {{ .Values.auth.external.idpManager.managerType | toJson }},
+        "ClientConfig": {
+          "Issuer": {{ .Values.auth.external.idpManager.clientConfig.issuer | toJson }},
+          "TokenEndpoint": {{ .Values.auth.external.idpManager.clientConfig.tokenEndpoint | toJson }},
+          "ClientID": {{ .Values.auth.external.idpManager.clientConfig.clientId | toJson }},
+          "ClientSecret": "{{`{{ .NB_IDP_CLIENT_SECRET }}`}}",
+          "GrantType": {{ .Values.auth.external.idpManager.clientConfig.grantType | toJson }}
+        },
+        "ExtraConfig": {{ default (dict) .Values.auth.external.idpManager.extraConfig | toJson }}
+      },
+      "DeviceAuthorizationFlow": {
+        "ProviderConfig": {
+          "ClientID": {{ .Values.auth.external.deviceAuthFlow.providerConfig.clientId | toJson }},
+          "Audience": {{ .Values.auth.external.deviceAuthFlow.providerConfig.audience | toJson }},
+          "Scope": {{ .Values.auth.external.deviceAuthFlow.providerConfig.scope | toJson }}
+        }
+      },
+      "PKCEAuthorizationFlow": {
+        "ProviderConfig": {
+          "ClientID": {{ .Values.auth.external.pkceAuthFlow.providerConfig.clientId | toJson }},
+          "ClientSecret": "{{`{{ .NB_PKCE_CLIENT_SECRET }}`}}",
+          "Audience": {{ .Values.auth.external.pkceAuthFlow.providerConfig.audience | toJson }},
+          "AuthorizationEndpoint": {{ .Values.auth.external.pkceAuthFlow.providerConfig.authorizationEndpoint | toJson }},
+          "TokenEndpoint": {{ .Values.auth.external.pkceAuthFlow.providerConfig.tokenEndpoint | toJson }},
+          "Scope": {{ .Values.auth.external.pkceAuthFlow.providerConfig.scope | toJson }},
+          "RedirectURLs": {{ default (list) .Values.auth.external.pkceAuthFlow.providerConfig.redirectURLs | toJson }},
+          "UseIDToken": {{ .Values.auth.external.pkceAuthFlow.providerConfig.useIDToken }}
+        }
+      }
+    {{ else }}
+      "EmbeddedIdP": {
+        "Enabled": true,
+        "Issuer": {{ default (printf "https://%s/oauth2" .Values.global.host) .Values.auth.embedded.issuer | toJson }},
+        "Storage": {
+          "Type": {{ .Values.auth.embedded.storage.type | toJson }},
+          "Config": {
+            "File": "/var/lib/netbird/dex.db",
+            "DSN": "{{`{{ .NB_DEX_STORE_DSN }}`}}"
+          }
+        },
+        "DashboardRedirectURIs": {{ list (printf "https://%s/nb-auth" .Values.global.host) (printf "https://%s/nb-silent-auth" .Values.global.host) | toJson }},
+        "CLIRedirectURIs": {{ default (list) .Values.auth.embedded.cliRedirectURIs | toJson }},
+        "LocalAuthDisabled": {{ .Values.auth.embedded.localAuthDisabled }}
+      }
+    {{ end }}
+    }

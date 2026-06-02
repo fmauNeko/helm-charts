@@ -1,0 +1,91 @@
+{{- if .Values.relay.replicaCount }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "netbird.relay.fullname" . }}
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: relay
+spec:
+  replicas: {{ .Values.relay.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "netbird.relay.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.relay.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "netbird.relay.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "netbird.relay.serviceAccountName" . }}
+      containers:
+        - name: relay
+          image: {{ include "netbird.relay.image" . }}
+          imagePullPolicy: {{ .Values.relay.image.pullPolicy }}
+          env:
+            - name: NB_LISTEN_ADDRESS
+              value: ':443'
+            - name: NB_EXPOSED_ADDRESS
+              value: {{ .Values.relay.exposedAddress | quote }}
+            - name: NB_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "netbird.management.secretName" . }}
+                  key: NB_RELAY_SECRET
+            - name: NB_ENABLE_STUN
+              value: {{ .Values.relay.stun.enabled | quote }}
+            - name: NB_METRICS_PORT
+              value: '9090'
+            - name: NB_HEALTH_LISTEN_ADDRESS
+              value: ':9000'
+            - name: NB_LOG_LEVEL
+              value: {{ .Values.relay.logLevel | quote }}
+          ports:
+            - name: http
+              containerPort: 443
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+            - name: health
+              containerPort: 9000
+              protocol: TCP
+            {{- if .Values.relay.stun.enabled }}
+            - name: stun-udp
+              containerPort: {{ .Values.relay.stun.service.port }}
+              protocol: UDP
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.relay.resources | nindent 12 }}
+      {{- with .Values.relay.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.relay.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.relay.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

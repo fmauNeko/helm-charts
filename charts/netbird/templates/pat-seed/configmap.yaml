@@ -1,0 +1,114 @@
+{{- if .Values.patSeed.enabled -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "netbird.fullname" . }}-pat-seed-script
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation
+data:
+  setup.sh: |
+    #!/bin/sh
+    set -eu
+
+    MGMT_URL="http://{{ include "netbird.management.fullname" . }}:{{ .Values.management.service.httpPort }}"
+    SECRET_NAME="{{ include "netbird.fullname" . }}-pat"
+    KUBE_URL="https://kubernetes.default.svc"
+    SA_PATH="/var/run/secrets/kubernetes.io/serviceaccount"
+    CA="$SA_PATH/ca.crt"
+    TOKEN="$(cat "$SA_PATH/token")"
+
+    if [ -z "${ADMIN_EMAIL:-}" ]; then
+      echo "ERROR: ADMIN_EMAIL is required"
+      exit 1
+    fi
+
+    if [ -z "${ADMIN_PASSWORD:-}" ]; then
+      echo "ERROR: ADMIN_PASSWORD is required"
+      exit 1
+    fi
+
+    echo "==> Waiting for management /api/instance..."
+    ATTEMPTS=0
+    until curl -sf "$MGMT_URL/api/instance" > /dev/null 2>&1; do
+      ATTEMPTS=$((ATTEMPTS + 1))
+      if [ "$ATTEMPTS" -ge 60 ]; then
+        echo "FATAL: management not ready after 180s"
+        exit 1
+      fi
+      sleep 3
+    done
+    echo "Management ready"
+
+    echo "==> POST /api/setup"
+    HTTP_CODE=$(curl -s -o /tmp/setup_resp.json -w "%{http_code}" \
+      -X POST "$MGMT_URL/api/setup" \
+      -H "Content-Type: application/json" \
+      -d "{\"email\":\"${ADMIN_EMAIL}\",\"name\":\"Admin\",\"password\":\"${ADMIN_PASSWORD}\",\"create_pat\":true,\"pat_expire_in\":365}")
+
+    if [ "$HTTP_CODE" = "412" ]; then
+      echo "Setup already complete (412) — exit 0"
+      exit 0
+    fi
+
+    if [ "$HTTP_CODE" != "200" ]; then
+      echo "ERROR: POST /api/setup returned $HTTP_CODE"
+      cat /tmp/setup_resp.json
+      exit 1
+    fi
+
+    PAT=$(grep -o '"personal_access_token":"[^"]*"' /tmp/setup_resp.json | cut -d'"' -f4 || true)
+    if [ -z "$PAT" ]; then
+      echo "ERROR: no PAT in response"
+      cat /tmp/setup_resp.json
+      exit 1
+    fi
+
+    PAT_B64=$(printf "%s" "$PAT" | base64 | tr -d '\n')
+    SECRET_JSON="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$SECRET_NAME\",\"namespace\":\"$NAMESPACE\"},\"type\":\"Opaque\",\"data\":{\"token\":\"$PAT_B64\"}}"
+
+    echo "==> Writing PAT to Secret $SECRET_NAME..."
+    HTTP_SECRET=$(curl -s -o /tmp/secret_resp.json -w "%{http_code}" \
+      --cacert "$CA" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -X POST "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets" \
+      -d "$SECRET_JSON")
+
+    if [ "$HTTP_SECRET" = "409" ]; then
+      HTTP_SECRET=$(curl -s -o /tmp/secret_resp.json -w "%{http_code}" \
+        --cacert "$CA" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/merge-patch+json" \
+        -X PATCH "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets/$SECRET_NAME" \
+        -d "{\"data\":{\"token\":\"$PAT_B64\"}}")
+    fi
+
+    case "$HTTP_SECRET" in
+      200|201)
+        echo "Done!"
+        ;;
+      *)
+        echo "ERROR: Secret write returned $HTTP_SECRET"
+        cat /tmp/secret_resp.json
+        exit 1
+        ;;
+    esac
+
+    {{- if .Values.patSeed.seedDefaultResources }}
+    echo "==> Seeding default resources..."
+    AUTH_HEADER="Authorization: Token $PAT"
+
+    GROUPS=$(curl -sf -H "$AUTH_HEADER" "$MGMT_URL/api/groups" 2>/dev/null || echo "[]")
+    if echo "$GROUPS" | grep -q '"name":"All"'; then
+      echo "All group already exists"
+    else
+      curl -sf -H "$AUTH_HEADER" -H "Content-Type: application/json" \
+        -X POST "$MGMT_URL/api/groups" \
+        -d '{"name":"All"}' > /dev/null
+      echo "Created All group"
+    fi
+    {{- end }}
+{{- end }}

@@ -1,0 +1,58 @@
+{{- if .Values.gateway.enabled -}}
+{{- $host := .Values.global.host -}}
+{{- $mgmtHost := default $host .Values.global.management.host -}}
+{{- $signalHost := default $host .Values.global.signal.host -}}
+{{- $parentRef := .Values.gateway.parentRef -}}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: {{ include "netbird.management.fullname" . }}-grpc
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: management
+spec:
+  parentRefs:
+    - name: {{ $parentRef.name }}
+      {{- if $parentRef.namespace }}
+      namespace: {{ $parentRef.namespace }}
+      {{- end }}
+      {{- if $parentRef.sectionName }}
+      sectionName: {{ $parentRef.sectionName }}
+      {{- end }}
+  hostnames:
+    - {{ $mgmtHost | quote }}
+  rules:
+    - matches:
+        - method:
+            service: management.ManagementService
+      backendRefs:
+        - name: {{ include "netbird.management.fullname" . }}
+          port: {{ .Values.management.service.grpcPort }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: {{ include "netbird.signal.fullname" . }}-grpc
+  labels:
+    {{- include "netbird.labels" . | nindent 4 }}
+    app.kubernetes.io/component: signal
+spec:
+  parentRefs:
+    - name: {{ $parentRef.name }}
+      {{- if $parentRef.namespace }}
+      namespace: {{ $parentRef.namespace }}
+      {{- end }}
+      {{- if $parentRef.sectionName }}
+      sectionName: {{ $parentRef.sectionName }}
+      {{- end }}
+  hostnames:
+    - {{ $signalHost | quote }}
+  rules:
+    - matches:
+        - method:
+            service: signalexchange.SignalExchange
+      backendRefs:
+        - name: {{ include "netbird.signal.fullname" . }}
+          port: {{ .Values.signal.service.port }}
+{{- end }}
