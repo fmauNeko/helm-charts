@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
+![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
@@ -91,6 +91,8 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | managementConfig.relay.addresses | list | `[]` | External relay addresses (if not using this chart's relay) |
 | managementConfig.reverseProxy.trustedHTTPProxies | list | `[]` | Trusted HTTP proxy CIDR blocks |
 | managementConfig.reverseProxy.trustedPeers | list | `[]` | Trusted peers for reverse proxy |
+| managementConfig.signal.proto | string | `"https"` | Signal protocol advertised to peers |
+| managementConfig.signal.uri | string | `""` | External signal address advertised to peers (HOST:PORT). Empty = in-cluster <release>-signal:10000 |
 | managementConfig.stuns | list | `[]` | STUN servers list |
 | managementConfig.turn.credentialsTTL | string | `"86400s"` | TURN credential TTL (e.g. '86400s') |
 | managementConfig.turn.timeBasedCredentials | bool | `false` | Use time-based credentials for TURN |

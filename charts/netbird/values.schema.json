@@ -468,6 +468,19 @@
                         }
                     }
                 },
+                "signal": {
+                    "type": "object",
+                    "properties": {
+                        "proto": {
+                            "description": "Signal protocol advertised to peers",
+                            "type": "string"
+                        },
+                        "uri": {
+                            "description": "External signal address advertised to peers (HOST:PORT). Empty = in-cluster \u003crelease\u003e-signal:10000",
+                            "type": "string"
+                        }
+                    }
+                },
                 "stuns": {
                     "description": "STUN servers list",
                     "type": "array"
