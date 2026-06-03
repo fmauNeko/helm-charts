@@ -29,8 +29,8 @@ data:
         "Secret": "{{`{{ .NB_RELAY_SECRET }}`}}"
       },
       "Signal": {
-        "Proto": "https",
-        "URI": {{ printf "%s:10000" (include "netbird.signal.fullname" .) | toJson }}
+        "Proto": {{ default "https" .Values.managementConfig.signal.proto | toJson }},
+        "URI": {{ default (printf "%s:10000" (include "netbird.signal.fullname" .)) .Values.managementConfig.signal.uri | toJson }}
       },
       "StoreConfig": {
         "Engine": {{ .Values.store.engine | toJson }}

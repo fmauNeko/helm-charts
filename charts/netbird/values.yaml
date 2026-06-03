@@ -266,6 +266,11 @@ managementConfig:
   relay:
     # -- External relay addresses (if not using this chart's relay)
     addresses: []
+  signal:
+    # -- External signal address advertised to peers (HOST:PORT). Empty = in-cluster <release>-signal:10000
+    uri: ''
+    # -- Signal protocol advertised to peers
+    proto: 'https'
   reverseProxy:
     # -- Trusted HTTP proxy CIDR blocks
     trustedHTTPProxies: []
