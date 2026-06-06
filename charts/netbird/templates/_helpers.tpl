@@ -141,3 +141,32 @@ Management secret name — uses existingSecret when set, otherwise chart-generat
 {{- define "netbird.management.secretName" -}}
 {{- default (include "netbird.management.fullname" .) .Values.secrets.existingSecret -}}
 {{- end }}
+
+{{/*
+Render NetBird management Host arrays.
+
+Upstream NetBird unmarshals Stuns/TURNConfig.Turns as []*config.Host, not strings.
+Accept string values for chart ergonomics/backwards compatibility and normalize them
+to Host objects. Object entries are also normalized while preserving credentials.
+*/}}
+{{- define "netbird.management.hostsJson" -}}
+{{- $defaultProto := default "udp" .defaultProto -}}
+{{- $hosts := list -}}
+{{- range (default (list) .hosts) -}}
+  {{- if kindIs "string" . -}}
+    {{- $hosts = append $hosts (dict "Proto" $defaultProto "URI" (trim .)) -}}
+  {{- else -}}
+    {{- $proto := default $defaultProto (default (index . "proto") (index . "Proto")) -}}
+    {{- $uri := default (index . "uri") (index . "URI") -}}
+    {{- $host := dict "Proto" $proto "URI" $uri -}}
+    {{- with default (index . "username") (index . "Username") -}}
+      {{- $_ := set $host "Username" . -}}
+    {{- end -}}
+    {{- with default (index . "password") (index . "Password") -}}
+      {{- $_ := set $host "Password" . -}}
+    {{- end -}}
+    {{- $hosts = append $hosts $host -}}
+  {{- end -}}
+{{- end -}}
+{{- $hosts | toJson -}}
+{{- end }}

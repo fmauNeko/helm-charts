@@ -482,7 +482,7 @@
                     }
                 },
                 "stuns": {
-                    "description": "STUN servers list",
+                    "description": "STUN servers list. String entries (for example, stun:stun.example.com:3478) are normalized to NetBird Host objects.",
                     "type": "array"
                 },
                 "turn": {
@@ -497,7 +497,7 @@
                             "type": "boolean"
                         },
                         "turns": {
-                            "description": "External TURN servers list",
+                            "description": "External TURN servers list. String entries are normalized to NetBird Host objects; object entries may set proto, uri, username, and password.",
                             "type": "array"
                         }
                     }

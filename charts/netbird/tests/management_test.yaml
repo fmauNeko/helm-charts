@@ -64,6 +64,31 @@ tests:
           path: data["management.json"]
           pattern: '"Engine": "postgres"'
 
+  - it: renders string STUN values as NetBird Host objects
+    set:
+      auth.mode: external
+      managementConfig.stuns:
+        - stun:stun.example.com:3478
+    template: templates/management/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["management.json"]
+          pattern: '"Stuns": \[{"Proto":"udp","URI":"stun:stun.example.com:3478"}\]'
+
+  - it: renders object TURN values as NetBird Host objects with credentials
+    set:
+      auth.mode: external
+      managementConfig.turn.turns:
+        - proto: tcp
+          uri: turn:turn.example.com:5349
+          username: user
+          password: pass
+    template: templates/management/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["management.json"]
+          pattern: '"Turns": \[{"Password":"pass","Proto":"tcp","URI":"turn:turn.example.com:5349","Username":"user"}\]'
+
   - it: existingSecret suppresses Secret creation
     set:
       auth.mode: external
