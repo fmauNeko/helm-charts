@@ -254,14 +254,14 @@ store:
 
 # Management config overrides (maps to management.json fields)
 managementConfig:
-  # -- STUN servers list
+  # -- STUN servers list. String entries (for example, stun:stun.example.com:3478) are normalized to NetBird Host objects.
   stuns: []
   turn:
     # -- TURN credential TTL (e.g. '86400s')
     credentialsTTL: '86400s'
     # -- Use time-based credentials for TURN
     timeBasedCredentials: false
-    # -- External TURN servers list
+    # -- External TURN servers list. String entries are normalized to NetBird Host objects; object entries may set proto, uri, username, and password.
     turns: []
   relay:
     # -- External relay addresses (if not using this chart's relay)

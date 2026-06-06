@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.2.0](https://img.shields.io/badge/Version-0.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
+![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
@@ -93,10 +93,10 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | managementConfig.reverseProxy.trustedPeers | list | `[]` | Trusted peers for reverse proxy |
 | managementConfig.signal.proto | string | `"https"` | Signal protocol advertised to peers |
 | managementConfig.signal.uri | string | `""` | External signal address advertised to peers (HOST:PORT). Empty = in-cluster <release>-signal:10000 |
-| managementConfig.stuns | list | `[]` | STUN servers list |
+| managementConfig.stuns | list | `[]` | STUN servers list. String entries (for example, stun:stun.example.com:3478) are normalized to NetBird Host objects. |
 | managementConfig.turn.credentialsTTL | string | `"86400s"` | TURN credential TTL (e.g. '86400s') |
 | managementConfig.turn.timeBasedCredentials | bool | `false` | Use time-based credentials for TURN |
-| managementConfig.turn.turns | list | `[]` | External TURN servers list |
+| managementConfig.turn.turns | list | `[]` | External TURN servers list. String entries are normalized to NetBird Host objects; object entries may set proto, uri, username, and password. |
 | metrics.serviceMonitor.enabled | bool | `false` | Enable Prometheus ServiceMonitor (requires Prometheus Operator) |
 | metrics.serviceMonitor.interval | string | `"30s"` | Scrape interval |
 | metrics.serviceMonitor.labels | object | `{}` | Additional labels for ServiceMonitor |

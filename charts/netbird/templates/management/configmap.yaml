@@ -16,9 +16,9 @@ data:
     {
       "Datadir": "/var/lib/netbird",
       "DataStoreEncryptionKey": "{{`{{ .NB_DATASTORE_ENC_KEY }}`}}",
-      "Stuns": {{ default (list) .Values.managementConfig.stuns | toJson }},
+      "Stuns": {{ include "netbird.management.hostsJson" (dict "hosts" .Values.managementConfig.stuns "defaultProto" "udp") }},
       "TURNConfig": {
-        "Turns": {{ default (list) .Values.managementConfig.turn.turns | toJson }},
+        "Turns": {{ include "netbird.management.hostsJson" (dict "hosts" .Values.managementConfig.turn.turns "defaultProto" "udp") }},
         "CredentialsTTL": {{ .Values.managementConfig.turn.credentialsTTL | toJson }},
         "Secret": "{{`{{ .NB_TURN_SECRET }}`}}",
         "TimeBasedCredentials": {{ .Values.managementConfig.turn.timeBasedCredentials }}
