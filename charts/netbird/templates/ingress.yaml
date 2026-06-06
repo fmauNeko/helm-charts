@@ -53,11 +53,18 @@ spec:
                 name: {{ include "netbird.relay.fullname" . }}
                 port:
                   name: http
-          - path: /ws-proxy
+          - path: /ws-proxy/management
             pathType: Prefix
             backend:
               service:
-                name: {{ include "netbird.relay.fullname" . }}
+                name: {{ include "netbird.management.fullname" . }}
+                port:
+                  name: http
+          - path: /ws-proxy/signal
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "netbird.signal.fullname" . }}
                 port:
                   name: http
           - path: /
@@ -98,7 +105,7 @@ spec:
               service:
                 name: {{ include "netbird.management.fullname" . }}
                 port:
-                  name: grpc
+                  name: http
 ---
 # Signal gRPC Ingress
 apiVersion: networking.k8s.io/v1

@@ -20,6 +20,44 @@ tests:
       - isKind:
           of: HTTPRoute
 
+  - it: routes /ws-proxy/management to the management http port
+    set:
+      auth.mode: external
+      gateway.enabled: true
+      gateway.parentRef.name: main
+      global.host: netbird.example.com
+    template: templates/gateway/httproute.yaml
+    asserts:
+      - contains:
+          path: spec.rules
+          content:
+            matches:
+              - path:
+                  type: PathPrefix
+                  value: /ws-proxy/management
+            backendRefs:
+              - name: RELEASE-NAME-netbird-management
+                port: 80
+
+  - it: routes /ws-proxy/signal to the signal http port
+    set:
+      auth.mode: external
+      gateway.enabled: true
+      gateway.parentRef.name: main
+      global.host: netbird.example.com
+    template: templates/gateway/httproute.yaml
+    asserts:
+      - contains:
+          path: spec.rules
+          content:
+            matches:
+              - path:
+                  type: PathPrefix
+                  value: /ws-proxy/signal
+            backendRefs:
+              - name: RELEASE-NAME-netbird-signal
+                port: 80
+
   - it: enabled renders GRPCRoutes
     set:
       auth.mode: external
@@ -29,3 +67,16 @@ tests:
     asserts:
       - isKind:
           of: GRPCRoute
+
+  - it: management GRPCRoute targets the management http port per upstream docs
+    set:
+      auth.mode: external
+      gateway.enabled: true
+      gateway.parentRef.name: main
+      global.host: netbird.example.com
+    template: templates/gateway/grpcroute.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.rules[0].backendRefs[0].port
+          value: 80

@@ -28,7 +28,7 @@ spec:
             service: management.ManagementService
       backendRefs:
         - name: {{ include "netbird.management.fullname" . }}
-          port: {{ .Values.management.service.grpcPort }}
+          port: {{ .Values.management.service.httpPort }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GRPCRoute
