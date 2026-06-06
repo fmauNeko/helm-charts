@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.4...netbird-v0.2.5) (2026-06-06)
+
+
+### Bug Fixes
+
+* **netbird:** stream management logs to console ([#30](https://github.com/fmauNeko/helm-charts/issues/30)) ([422d2eb](https://github.com/fmauNeko/helm-charts/commit/422d2eb302bc39baf8996c79ef10073e7ea8ea85))
+
 ## [0.2.4](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.3...netbird-v0.2.4) (2026-06-06)
 
 
