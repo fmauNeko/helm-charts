@@ -16,6 +16,32 @@ tests:
           path: spec.strategy.type
           value: Recreate
 
+  - it: logs to console by default so kubectl logs works
+    set:
+      auth.mode: external
+    template: templates/management/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --log-file=console
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --log-level=info
+
+  - it: honors logLevel and logFile overrides
+    set:
+      auth.mode: external
+      management.logLevel: debug
+      management.logFile: /var/log/netbird/management.log
+    template: templates/management/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --log-level=debug
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --log-file=/var/log/netbird/management.log
+
   - it: has grpc port on service
     set:
       auth.mode: external

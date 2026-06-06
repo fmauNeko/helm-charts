@@ -36,7 +36,8 @@ spec:
           args:
             - --config=/etc/netbird/management.json
             - --port=80
-            - --log-level=info
+            - --log-level={{ .Values.management.logLevel }}
+            - --log-file={{ .Values.management.logFile }}
             - --datadir=/var/lib/netbird
           envFrom:
             - secretRef:

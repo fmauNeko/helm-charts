@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.2.3](https://img.shields.io/badge/Version-0.2.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
+![Version: 0.2.4](https://img.shields.io/badge/Version-0.2.4-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
@@ -77,6 +77,8 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | management.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | management.image.repository | string | `"netbirdio/management"` | Management image repository |
 | management.image.tag | string | `""` | Management image tag. Defaults to chart appVersion when empty. |
+| management.logFile | string | `"console"` | Management log destination. 'console' streams to stdout/stderr for kubectl logs; a path writes to a rotated file inside the container. |
+| management.logLevel | string | `"info"` | Management log level (panic, fatal, error, warn, info, debug, trace) |
 | management.nodeSelector | object | `{}` | Node selector for management pods |
 | management.persistence.enabled | bool | `true` | Enable persistent storage for management data directory |
 | management.persistence.existingClaim | string | `""` | Use an existing PVC instead of creating one |
