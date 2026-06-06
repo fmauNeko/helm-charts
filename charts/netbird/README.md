@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
+![Version: 0.2.3](https://img.shields.io/badge/Version-0.2.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
@@ -16,6 +16,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | auth.embedded.storage.dsn | string | `""` | Dex postgres DSN (used when storage.type=postgres; referenced via {{ .NB_DEX_STORE_DSN }} placeholder) |
 | auth.embedded.storage.type | string | `"sqlite3"` | Dex storage type: sqlite3 or postgres |
 | auth.external.audience | string | `""` | OIDC audience |
+| auth.external.authKeysLocation | string | `""` | Explicit JWKS URL override. Empty = omit AuthKeysLocation and let NetBird discover jwks_uri from oidcConfigEndpoint. |
 | auth.external.authority | string | `""` | OIDC authority/issuer URL |
 | auth.external.clientId | string | `""` | OIDC client ID for the dashboard |
 | auth.external.deviceAuthFlow.providerConfig.audience | string | `""` | Device auth flow audience |
@@ -27,6 +28,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | auth.external.idpManager.clientConfig.tokenEndpoint | string | `""` | IdP token endpoint |
 | auth.external.idpManager.extraConfig | object | `{}` | The NB_ZITADEL_PAT env var must be present in the management Secret (via secrets.existingSecret or the auto-generated secret). |
 | auth.external.idpManager.managerType | string | `"none"` | IdP manager type: none, auth0, azure, keycloak, zitadel, authentik, okta, google, jumpcloud, pocketid, dex |
+| auth.external.oidcConfigEndpoint | string | `""` | OIDC discovery endpoint. Empty = <authority>/.well-known/openid-configuration. NetBird uses this to discover issuer, JWKS, token, authorization, and device authorization endpoints. |
 | auth.external.pkceAuthFlow.providerConfig.audience | string | `""` | PKCE auth flow audience |
 | auth.external.pkceAuthFlow.providerConfig.authorizationEndpoint | string | `""` | PKCE auth flow authorization endpoint |
 | auth.external.pkceAuthFlow.providerConfig.clientId | string | `""` | PKCE auth flow client ID |

@@ -41,6 +41,34 @@ tests:
           path: data["management.json"]
           pattern: EmbeddedIdP
 
+  - it: external mode omits AuthKeysLocation by default and uses discovery endpoint
+    set:
+      auth.mode: external
+      auth.external.authority: https://sso.example.com
+    template: templates/management/configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data["management.json"]
+          pattern: '"AuthKeysLocation"'
+      - matchRegex:
+          path: data["management.json"]
+          pattern: '"OIDCConfigEndpoint": "https://sso.example.com/.well-known/openid-configuration"'
+
+  - it: external mode supports explicit OIDC discovery and JWKS overrides
+    set:
+      auth.mode: external
+      auth.external.authority: https://sso.example.com
+      auth.external.oidcConfigEndpoint: https://issuer.example.net/.well-known/openid-configuration
+      auth.external.authKeysLocation: https://issuer.example.net/oauth/v2/keys
+    template: templates/management/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data["management.json"]
+          pattern: '"OIDCConfigEndpoint": "https://issuer.example.net/.well-known/openid-configuration"'
+      - matchRegex:
+          path: data["management.json"]
+          pattern: '"AuthKeysLocation": "https://issuer.example.net/oauth/v2/keys"'
+
   - it: embedded mode has EmbeddedIdP not IdpManagerConfig
     set:
       auth.mode: embedded
