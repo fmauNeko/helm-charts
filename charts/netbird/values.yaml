@@ -160,7 +160,9 @@ signal:
   service:
     # -- Signal service type
     type: ClusterIP
-    # -- Signal gRPC port
+    # -- Signal HTTP/WebSocket-proxy port (serves /ws-proxy/signal — the primary client transport in NetBird v0.65+)
+    httpPort: 80
+    # -- Signal gRPC port (backward-compatibility transport for legacy agents)
     port: 10000
   # -- Pod annotations for signal
   podAnnotations: {}

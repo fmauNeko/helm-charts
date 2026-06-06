@@ -50,10 +50,17 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /ws-proxy
+            value: /ws-proxy/management
       backendRefs:
-        - name: {{ include "netbird.relay.fullname" . }}
-          port: {{ .Values.relay.service.port }}
+        - name: {{ include "netbird.management.fullname" . }}
+          port: {{ .Values.management.service.httpPort }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /ws-proxy/signal
+      backendRefs:
+        - name: {{ include "netbird.signal.fullname" . }}
+          port: {{ .Values.signal.service.httpPort }}
     - matches:
         - path:
             type: PathPrefix

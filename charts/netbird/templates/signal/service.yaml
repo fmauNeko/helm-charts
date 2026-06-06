@@ -10,6 +10,10 @@ spec:
   selector:
     {{- include "netbird.signal.selectorLabels" . | nindent 4 }}
   ports:
+    - name: http
+      port: {{ .Values.signal.service.httpPort }}
+      targetPort: http
+      protocol: TCP
     - name: grpc
       port: {{ .Values.signal.service.port }}
       targetPort: grpc

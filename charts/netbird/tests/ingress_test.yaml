@@ -18,3 +18,78 @@ tests:
     asserts:
       - isKind:
           of: Ingress
+
+  - it: routes /ws-proxy/management to the management http port
+    set:
+      auth.mode: external
+      ingress.enabled: true
+      global.host: netbird.example.com
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: spec.rules[0].http.paths
+          content:
+            path: /ws-proxy/management
+            pathType: Prefix
+            backend:
+              service:
+                name: RELEASE-NAME-netbird-management
+                port:
+                  name: http
+
+  - it: routes /ws-proxy/signal to the signal http port
+    set:
+      auth.mode: external
+      ingress.enabled: true
+      global.host: netbird.example.com
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: spec.rules[0].http.paths
+          content:
+            path: /ws-proxy/signal
+            pathType: Prefix
+            backend:
+              service:
+                name: RELEASE-NAME-netbird-signal
+                port:
+                  name: http
+
+  - it: keeps /relay routed to the relay service
+    set:
+      auth.mode: external
+      ingress.enabled: true
+      global.host: netbird.example.com
+    documentIndex: 0
+    asserts:
+      - contains:
+          path: spec.rules[0].http.paths
+          content:
+            path: /relay
+            pathType: Prefix
+            backend:
+              service:
+                name: RELEASE-NAME-netbird-relay
+                port:
+                  name: http
+
+  - it: routes management gRPC to the management http port per upstream docs
+    set:
+      auth.mode: external
+      ingress.enabled: true
+      global.host: netbird.example.com
+    documentIndex: 1
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/backend-protocol"]
+          value: GRPC
+      - contains:
+          path: spec.rules[0].http.paths
+          content:
+            path: /management.ManagementService
+            pathType: Prefix
+            backend:
+              service:
+                name: RELEASE-NAME-netbird-management
+                port:
+                  name: http

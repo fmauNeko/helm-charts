@@ -30,6 +30,9 @@ spec:
           image: {{ include "netbird.signal.image" . }}
           imagePullPolicy: {{ .Values.signal.image.pullPolicy }}
           ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
             - name: grpc
               containerPort: 10000
               protocol: TCP

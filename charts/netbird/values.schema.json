@@ -722,8 +722,12 @@
                 "service": {
                     "type": "object",
                     "properties": {
+                        "httpPort": {
+                            "description": "Signal HTTP/WebSocket-proxy port (serves /ws-proxy/signal — the primary client transport in NetBird v0.65+)",
+                            "type": "integer"
+                        },
                         "port": {
-                            "description": "Signal gRPC port",
+                            "description": "Signal gRPC port (backward-compatibility transport for legacy agents)",
                             "type": "integer"
                         },
                         "type": {

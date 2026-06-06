@@ -16,6 +16,31 @@ tests:
             protocol: TCP
             targetPort: grpc
 
+  - it: signal HTTP/ws-proxy service port named http on 80
+    set:
+      auth.mode: external
+    template: templates/signal/service.yaml
+    asserts:
+      - contains:
+          path: spec.ports
+          content:
+            name: http
+            port: 80
+            protocol: TCP
+            targetPort: http
+
+  - it: signal deployment exposes http containerPort 80
+    set:
+      auth.mode: external
+    template: templates/signal/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            name: http
+            containerPort: 80
+            protocol: TCP
+
   - it: signal image uses appVersion fallback
     set:
       auth.mode: external

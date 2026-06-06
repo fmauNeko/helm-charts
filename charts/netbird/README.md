@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.2.1](https://img.shields.io/badge/Version-0.2.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
+![Version: 0.2.2](https://img.shields.io/badge/Version-0.2.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.71.4](https://img.shields.io/badge/AppVersion-0.71.4-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
@@ -135,7 +135,8 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | signal.podAnnotations | object | `{}` | Pod annotations for signal |
 | signal.replicaCount | int | `1` | Number of signal replicas |
 | signal.resources | object | `{}` | Resource requests/limits for signal |
-| signal.service.port | int | `10000` | Signal gRPC port |
+| signal.service.httpPort | int | `80` | Signal HTTP/WebSocket-proxy port (serves /ws-proxy/signal — the primary client transport in NetBird v0.65+) |
+| signal.service.port | int | `10000` | Signal gRPC port (backward-compatibility transport for legacy agents) |
 | signal.service.type | string | `"ClusterIP"` | Signal service type |
 | signal.tolerations | list | `[]` | Tolerations for signal pods |
 | store.engine | string | `"sqlite"` | Storage engine: sqlite (default), postgres, or mysql |
