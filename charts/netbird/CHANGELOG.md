@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.3...netbird-v0.2.4) (2026-06-06)
+
+
+### Bug Fixes
+
+* **netbird:** rely on OIDC discovery for JWKS URI ([#28](https://github.com/fmauNeko/helm-charts/issues/28)) ([0a5d7ca](https://github.com/fmauNeko/helm-charts/commit/0a5d7ca6f94db616c92c684826c1f96fc159fc52))
+
 ## [0.2.3](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.2...netbird-v0.2.3) (2026-06-06)
 
 
