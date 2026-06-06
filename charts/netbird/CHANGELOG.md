@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.2...netbird-v0.2.3) (2026-06-06)
+
+
+### Bug Fixes
+
+* **netbird:** route ws-proxy to signal/management and gRPC to :80 ([#23](https://github.com/fmauNeko/helm-charts/issues/23)) ([35224c1](https://github.com/fmauNeko/helm-charts/commit/35224c1fa9dbeefecc9d2e67de8a5d5f9bf1c589))
+
 ## [0.2.2](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.1...netbird-v0.2.2) (2026-06-06)
 
 
