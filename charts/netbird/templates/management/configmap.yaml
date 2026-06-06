@@ -46,8 +46,10 @@ data:
         "AuthAudience": {{ .Values.auth.external.audience | toJson }},
         "AuthClientID": {{ .Values.auth.external.clientId | toJson }},
         "AuthUserIDClaim": "sub",
-        "AuthKeysLocation": {{ printf "%s/keys" .Values.auth.external.authority | toJson }},
-        "OIDCConfigEndpoint": {{ printf "%s/.well-known/openid-configuration" .Values.auth.external.authority | toJson }},
+        {{- with .Values.auth.external.authKeysLocation }}
+        "AuthKeysLocation": {{ . | toJson }},
+        {{- end }}
+        "OIDCConfigEndpoint": {{ default (printf "%s/.well-known/openid-configuration" .Values.auth.external.authority) .Values.auth.external.oidcConfigEndpoint | toJson }},
         "IdpSignKeyRefreshEnabled": true
       },
       "IdpManagerConfig": {

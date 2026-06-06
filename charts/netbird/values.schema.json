@@ -58,6 +58,10 @@
                             "description": "OIDC audience",
                             "type": "string"
                         },
+                        "authKeysLocation": {
+                            "description": "Explicit JWKS URL override. Empty = omit AuthKeysLocation and let NetBird discover jwks_uri from oidcConfigEndpoint.",
+                            "type": "string"
+                        },
                         "authority": {
                             "description": "OIDC authority/issuer URL",
                             "type": "string"
@@ -121,6 +125,10 @@
                                     "type": "string"
                                 }
                             }
+                        },
+                        "oidcConfigEndpoint": {
+                            "description": "OIDC discovery endpoint. Empty = \u003cauthority\u003e/.well-known/openid-configuration. NetBird uses this to discover issuer, JWKS, token, authorization, and device authorization endpoints.",
+                            "type": "string"
                         },
                         "pkceAuthFlow": {
                             "type": "object",

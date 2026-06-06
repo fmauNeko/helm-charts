@@ -30,6 +30,10 @@ auth:
   external:
     # -- OIDC authority/issuer URL
     authority: ''
+    # -- OIDC discovery endpoint. Empty = <authority>/.well-known/openid-configuration. NetBird uses this to discover issuer, JWKS, token, authorization, and device authorization endpoints.
+    oidcConfigEndpoint: ''
+    # -- Explicit JWKS URL override. Empty = omit AuthKeysLocation and let NetBird discover jwks_uri from oidcConfigEndpoint.
+    authKeysLocation: ''
     # -- OIDC client ID for the dashboard
     clientId: ''
     # -- OIDC audience
