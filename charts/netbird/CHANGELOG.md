@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.1...netbird-v0.2.2) (2026-06-06)
+
+
+### Bug Fixes
+
+* **netbird:** render stun and turn hosts correctly ([d484ef7](https://github.com/fmauNeko/helm-charts/commit/d484ef790cfd622e28cee7c571dacf12c60fa7a8))
+* **netbird:** render stun and turn hosts correctly ([#21](https://github.com/fmauNeko/helm-charts/issues/21)) ([ee0928b](https://github.com/fmauNeko/helm-charts/commit/ee0928b55942a3214e262314e03830c9d3537d34))
+
 ## [0.2.1](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.0...netbird-v0.2.1) (2026-06-03)
 
 
