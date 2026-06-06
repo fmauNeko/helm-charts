@@ -120,6 +120,10 @@ management:
     tag: ''
     # -- Image pull policy
     pullPolicy: IfNotPresent
+  # -- Management log level (panic, fatal, error, warn, info, debug, trace)
+  logLevel: 'info'
+  # -- Management log destination. 'console' streams to stdout/stderr for kubectl logs; a path writes to a rotated file inside the container.
+  logFile: 'console'
   # -- Resource requests/limits for management
   resources: {}
   persistence:

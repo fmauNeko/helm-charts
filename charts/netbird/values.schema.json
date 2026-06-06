@@ -387,6 +387,14 @@
                         }
                     }
                 },
+                "logFile": {
+                    "description": "Management log destination. 'console' streams to stdout/stderr for kubectl logs; a path writes to a rotated file inside the container.",
+                    "type": "string"
+                },
+                "logLevel": {
+                    "description": "Management log level (panic, fatal, error, warn, info, debug, trace)",
+                    "type": "string"
+                },
                 "nodeSelector": {
                     "description": "Node selector for management pods",
                     "type": "object"
