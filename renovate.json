@@ -30,6 +30,12 @@
   ],
   "packageRules": [
     {
+      "description": "Helm appVersion is a version label, not an image reference, so it cannot hold a digest. Disable config:best-practices' docker:pinDigests for regex-managed Docker deps, otherwise the Pin Dependencies branch fails with 'update failure'.",
+      "matchManagers": ["custom.regex"],
+      "matchDatasources": ["docker"],
+      "pinDigests": false
+    },
+    {
       "description": "appVersion bumps must use fix(deps) so Release Please creates a patch chart release",
       "matchManagers": ["custom.regex"],
       "matchFileNames": ["charts/*/Chart.yaml"],
