@@ -1,0 +1,57 @@
+# Keeps generated chart docs/schemas in sync on main. Renovate (appVersion /
+# image tags) and Release Please (chart version) change Chart.yaml/values.yaml
+# but cannot run helm-docs in-PR, so the PR docs checks are non-blocking and the
+# canonical regeneration happens here, post-merge.
+name: Docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'charts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-regen
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    name: Regenerate chart docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+
+      - name: Set up Helm
+        uses: azure/setup-helm@dda3372f752e03dde6b3237bc9431cdc2f7a02a2 # v5
+
+      - name: Install chart tools
+        run: |
+          go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest
+          echo "$HOME/go/bin" >> "$GITHUB_PATH"
+          helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 --verify=false || true
+
+      - name: Regenerate docs and schemas
+        run: |
+          helm-docs --chart-search-root charts
+          for chart in charts/*/; do
+            if [ -f "${chart}values.yaml" ]; then
+              helm schema -f "${chart}values.yaml" -o "${chart}values.schema.json" --use-helm-docs
+            fi
+          done
+
+      - name: Commit regenerated docs
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "Docs already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add charts
+          git commit -m "docs: regenerate chart docs and schemas"
+          git push
