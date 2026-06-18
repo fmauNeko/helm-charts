@@ -8,6 +8,11 @@
     ":automergeDigest",
     ":automergeMinor"
   ],
+  "postUpgradeTasks": {
+    "commands": ["helm-docs --chart-search-root charts"],
+    "fileFilters": ["charts/**/README.md"],
+    "executionMode": "branch"
+  },
   "customManagers": [
     {
       "description": "Update Helm chart appVersion from inline renovate comment",
