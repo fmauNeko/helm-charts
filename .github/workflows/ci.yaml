@@ -166,11 +166,14 @@ jobs:
             helm unittest "${{ matrix.chart }}"
           fi
 
-      - name: Check chart docs
-        run: helm-docs --chart-search-root "${{ matrix.chart }}" && git diff --exit-code "${{ matrix.chart }}/README.md"
+      # Generated docs/schema drift is auto-corrected on main by docs.yaml
+      # (Renovate/Release Please cannot regenerate them in-PR), so these steps
+      # only verify generation succeeds and intentionally do not fail on diff.
+      - name: Render chart docs
+        run: helm-docs --chart-search-root "${{ matrix.chart }}"
 
-      - name: Check chart schema
-        run: helm schema -f "${{ matrix.chart }}/values.yaml" -o "${{ matrix.chart }}/values.schema.json" --use-helm-docs && git diff --exit-code "${{ matrix.chart }}/values.schema.json"
+      - name: Render chart schema
+        run: helm schema -f "${{ matrix.chart }}/values.yaml" -o "${{ matrix.chart }}/values.schema.json" --use-helm-docs
 
       - name: Validate chart manifests
         run: helm template "${{ matrix.chart }}" | kubeconform -strict -summary -schema-location default -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -
