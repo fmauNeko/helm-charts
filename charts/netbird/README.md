@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.2.6](https://img.shields.io/badge/Version-0.2.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.73.1](https://img.shields.io/badge/AppVersion-0.73.1-informational?style=flat-square)
+![Version: 0.2.7](https://img.shields.io/badge/Version-0.2.7-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.73.1](https://img.shields.io/badge/AppVersion-0.73.1-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
@@ -46,7 +46,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | dashboard.extraEnv | list | `[]` | Additional environment variables for dashboard container |
 | dashboard.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | dashboard.image.repository | string | `"netbirdio/dashboard"` | Dashboard image repository |
-| dashboard.image.tag | string | `"v2.38.1"` | Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion. |
+| dashboard.image.tag | string | `"v2.39.0"` | Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion. |
 | dashboard.nodeSelector | object | `{}` | Node selector for dashboard pods |
 | dashboard.podAnnotations | object | `{}` | Pod annotations for dashboard |
 | dashboard.replicaCount | int | `1` | Number of dashboard replicas |
@@ -110,7 +110,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | patSeed.enabled | bool | `false` | Enable the PAT seed bootstrap Job (creates initial account + PAT via native /api/setup endpoint) |
 | patSeed.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | patSeed.image.repository | string | `"curlimages/curl"` | Image for the PAT seed job (needs curl + sh) |
-| patSeed.image.tag | string | `"8.11.1"` | PAT seed job image tag |
+| patSeed.image.tag | string | `"8.20.0"` | PAT seed job image tag |
 | patSeed.seedDefaultResources | bool | `true` | Seed the default All group and allow-all policy |
 | relay.affinity | object | `{}` | Affinity rules for relay pods |
 | relay.exposedAddress | string | `"relay.example.com:443"` | REQUIRED: Externally reachable relay address (e.g. relay.example.com:443). Must be set for peers to connect. |
