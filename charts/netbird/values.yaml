@@ -336,7 +336,7 @@ patSeed:
     # -- Image for the PAT seed job (needs curl + sh)
     repository: 'curlimages/curl'
     # -- PAT seed job image tag
-    tag: '8.11.1'
+    tag: '8.20.0'
     # -- Image pull policy
     pullPolicy: IfNotPresent
   # -- Maximum time in seconds before the Job is terminated
