@@ -63,10 +63,12 @@ dashboard:
     # renovate: datasource=docker depName=netbirdio/dashboard versioning=docker
     repository: 'netbirdio/dashboard'
     # -- Specific dashboard image tag. MUST NOT fall back to appVersion.
-    tag: 'latest'
+    tag: 'v2.38.1'
 ```
 
 Renovate uses a custom regex manager configured in `renovate.json` to identify these image comments and pull tag updates directly.
+
+> **The comment placement is load-bearing.** The `renovate.json` custom regex manager matches the `# renovate:` line, then the `repository:` line, then the `tag:` line below it — helm-docs `# --` comments in between are tolerated. The `# renovate:` comment MUST sit directly above `repository:` (not above `tag:`). If the block is reordered or the comment is detached from its `repository:`/`tag:` pair, the regex silently stops matching and the tag is no longer tracked. Keep `versioning=docker` only — do **not** add `extractVersion`: Docker versioning already orders the `v`-prefixed dashboard tags and Renovate writes the full `vX.Y.Z` tag back (verified update path: `v2.38.1` → `v2.39.0`).
 
 ---
 

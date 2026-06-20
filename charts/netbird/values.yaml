@@ -226,7 +226,7 @@ dashboard:
   # -- Number of dashboard replicas
   replicaCount: 1
   image:
-    # renovate: datasource=docker depName=netbirdio/dashboard versioning=docker extractVersion=^v(?<version>.*)$
+    # renovate: datasource=docker depName=netbirdio/dashboard versioning=docker
     # -- Dashboard image repository
     repository: 'netbirdio/dashboard'
     # -- Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion.
