@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.7](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.6...netbird-v0.2.7) (2026-06-20)
+
+
+### Bug Fixes
+
+* **deps:** update curlimages/curl to v8.20.0 ([#52](https://github.com/fmauNeko/helm-charts/issues/52)) ([4e439e3](https://github.com/fmauNeko/helm-charts/commit/4e439e348ded825fb89ef15f9a7920e08d9575ee))
+* **deps:** update netbirdio/dashboard to v2.39.0 ([#53](https://github.com/fmauNeko/helm-charts/issues/53)) ([c5b792f](https://github.com/fmauNeko/helm-charts/commit/c5b792f20d15266b583c37002c1a21e1dbd75872))
+* **deps:** update netbirdio/management to v0.73.1 ([#50](https://github.com/fmauNeko/helm-charts/issues/50)) ([3adf099](https://github.com/fmauNeko/helm-charts/commit/3adf099fd40e84fa2c21f8d97631fa08e1c70354))
+* **netbird:** track dashboard image tag in Renovate ([6e721d9](https://github.com/fmauNeko/helm-charts/commit/6e721d9f9b79710849dbf70909e4a2b959fb59a1))
+
 ## [0.2.6](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.5...netbird-v0.2.6) (2026-06-18)
 
 
