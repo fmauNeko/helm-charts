@@ -58,5 +58,8 @@
       "commitMessageTopic": "{{depName}}"
     }
   ],
-  "ignorePaths": ["chart-template/**"]
+  "ignorePaths": ["chart-template/**"],
+  "statusCheckNames": {
+    "minimumReleaseAge": null
+  }
 }
