@@ -157,6 +157,9 @@ jobs:
           helm plugin install https://github.com/losisin/helm-values-schema-json --version v2.4.0 --verify=false || true
           helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false || true
 
+      - name: Build chart dependencies
+        run: helm dependency build "${{ matrix.chart }}"
+
       - name: Run chart-testing lint
         run: ct lint --config ct.yaml --charts "${{ matrix.chart }}"
 
@@ -197,6 +200,7 @@ jobs:
         run: |
           CHARTS='${{ needs.changed.outputs.charts_json }}'
           echo "$CHARTS" | jq -r '.[]' | while IFS= read -r chart; do
+            helm dependency build "$chart"
             helm template "$chart" | kubectl apply --dry-run=server -f -
           done
 
@@ -221,6 +225,7 @@ jobs:
         run: |
           find charts -path '*/ci/install-values.yaml' -print | sort | while IFS= read -r values_file; do
             chart=${values_file%/ci/install-values.yaml}
+            helm dependency build "$chart"
             helm install test-release "$chart" -f "$chart/ci/install-values.yaml" --wait
             helm uninstall test-release --wait
           done
