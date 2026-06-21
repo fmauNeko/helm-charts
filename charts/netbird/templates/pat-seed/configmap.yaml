@@ -49,8 +49,64 @@ data:
       -d "{\"email\":\"${ADMIN_EMAIL}\",\"name\":\"Admin\",\"password\":\"${ADMIN_PASSWORD}\",\"create_pat\":true,\"pat_expire_in\":365}")
 
     if [ "$HTTP_CODE" = "412" ]; then
+    {{- if and .Values.operator.enabled .Values.patSeed.writeOperatorApiKey }}
+      OP_SECRET_NAME="{{ .Values.operator.netbirdAPI.keyFromSecret.name }}"
+      OP_KEY="{{ .Values.operator.netbirdAPI.keyFromSecret.key }}"
+      OP_DEPLOY="{{ .Release.Name }}-operator"
+      echo "Setup already complete (412) — checking operator credential..."
+      OP_SECRET_JSON=$(curl -sf --cacert "$CA" \
+        -H "Authorization: Bearer $TOKEN" \
+        "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets/$OP_SECRET_NAME" 2>/dev/null || echo "{}")
+      OP_CURRENT=$(printf '%s' "$OP_SECRET_JSON" | grep -o "\"$OP_KEY\":\"[^\"]*\"" | cut -d'"' -f4 || echo "")
+      if [ -n "$OP_CURRENT" ]; then
+        echo "Operator Secret already credentialed — idempotent re-run, exit 0"
+        exit 0
+      fi
+      PAT_SECRET_JSON=$(curl -sf --cacert "$CA" \
+        -H "Authorization: Bearer $TOKEN" \
+        "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets/$SECRET_NAME" 2>/dev/null || echo "{}")
+      PAT_B64=$(printf '%s' "$PAT_SECRET_JSON" | grep -o '"token":"[^"]*"' | cut -d'"' -f4 || echo "")
+      if [ -z "$PAT_B64" ]; then
+        echo "ERROR: operator credential unavailable on an already-initialized server: set patSeed.writeOperatorApiKey=false and provide a BYO Secret named '$OP_SECRET_NAME' with key '$OP_KEY', or pre-populate the '$SECRET_NAME' Secret."
+        exit 1
+      fi
+      OP_SECRET_JSON="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$OP_SECRET_NAME\",\"namespace\":\"$NAMESPACE\"},\"type\":\"Opaque\",\"data\":{\"$OP_KEY\":\"$PAT_B64\"}}"
+      HTTP_OP=$(curl -s -o /tmp/op_secret_resp.json -w "%{http_code}" \
+        --cacert "$CA" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -X POST "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets" \
+        -d "$OP_SECRET_JSON")
+      if [ "$HTTP_OP" = "409" ]; then
+        HTTP_OP=$(curl -s -o /tmp/op_secret_resp.json -w "%{http_code}" \
+          --cacert "$CA" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/merge-patch+json" \
+          -X PATCH "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets/$OP_SECRET_NAME" \
+          -d "{\"data\":{\"$OP_KEY\":\"$PAT_B64\"}}")
+      fi
+      case "$HTTP_OP" in
+        200|201)
+          echo "Operator Secret written — rollout-restart..."
+          ;;
+        *)
+          echo "ERROR: operator Secret write returned $HTTP_OP"
+          cat /tmp/op_secret_resp.json
+          exit 1
+          ;;
+      esac
+      RESTART_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      curl -sf --cacert "$CA" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/merge-patch+json" \
+        -X PATCH "$KUBE_URL/apis/apps/v1/namespaces/$NAMESPACE/deployments/$OP_DEPLOY" \
+        -d "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"kubectl.kubernetes.io/restartedAt\":\"$RESTART_TS\"}}}}}" > /dev/null
+      echo "Operator Deployment rollout-restart triggered"
+      exit 0
+    {{- else }}
       echo "Setup already complete (412) — exit 0"
       exit 0
+    {{- end }}
     fi
 
     if [ "$HTTP_CODE" != "200" ]; then
@@ -97,6 +153,44 @@ data:
         ;;
     esac
 
+    {{- if and .Values.operator.enabled .Values.patSeed.writeOperatorApiKey }}
+    OP_SECRET_NAME="{{ .Values.operator.netbirdAPI.keyFromSecret.name }}"
+    OP_KEY="{{ .Values.operator.netbirdAPI.keyFromSecret.key }}"
+    OP_DEPLOY="{{ .Release.Name }}-operator"
+    OP_SECRET_JSON="{\"apiVersion\":\"v1\",\"kind\":\"Secret\",\"metadata\":{\"name\":\"$OP_SECRET_NAME\",\"namespace\":\"$NAMESPACE\"},\"type\":\"Opaque\",\"data\":{\"$OP_KEY\":\"$PAT_B64\"}}"
+    echo "==> Writing PAT to operator Secret $OP_SECRET_NAME..."
+    HTTP_OP=$(curl -s -o /tmp/op_secret_resp.json -w "%{http_code}" \
+      --cacert "$CA" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -X POST "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets" \
+      -d "$OP_SECRET_JSON")
+    if [ "$HTTP_OP" = "409" ]; then
+      HTTP_OP=$(curl -s -o /tmp/op_secret_resp.json -w "%{http_code}" \
+        --cacert "$CA" \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/merge-patch+json" \
+        -X PATCH "$KUBE_URL/api/v1/namespaces/$NAMESPACE/secrets/$OP_SECRET_NAME" \
+        -d "{\"data\":{\"$OP_KEY\":\"$PAT_B64\"}}")
+    fi
+    case "$HTTP_OP" in
+      200|201)
+        echo "Operator Secret written"
+        ;;
+      *)
+        echo "ERROR: operator Secret write returned $HTTP_OP"
+        cat /tmp/op_secret_resp.json
+        exit 1
+        ;;
+    esac
+    RESTART_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+    curl -sf --cacert "$CA" \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/merge-patch+json" \
+      -X PATCH "$KUBE_URL/apis/apps/v1/namespaces/$NAMESPACE/deployments/$OP_DEPLOY" \
+      -d "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"kubectl.kubernetes.io/restartedAt\":\"$RESTART_TS\"}}}}}" > /dev/null
+    echo "Operator Deployment rollout-restart triggered"
+    {{- end }}
     {{- if .Values.patSeed.seedDefaultResources }}
     echo "==> Seeding default resources..."
     AUTH_HEADER="Authorization: Token $PAT"

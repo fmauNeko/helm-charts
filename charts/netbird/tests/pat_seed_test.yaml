@@ -45,3 +45,100 @@ tests:
         documentSelector:
           path: kind
           value: Role
+
+  - it: AUTO mode configmap contains operator Secret write and restart
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: templates/pat-seed/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data['setup.sh']
+          pattern: netbird-mgmt-api-key
+      - matchRegex:
+          path: data['setup.sh']
+          pattern: restartedAt
+
+  - it: AUTO mode configmap 412 branch copies PAT from pat Secret
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: templates/pat-seed/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data['setup.sh']
+          pattern: '"token"'
+
+  - it: AUTO mode configmap 412 branch exits non-zero when no PAT available
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: templates/pat-seed/configmap.yaml
+    asserts:
+      - matchRegex:
+          path: data['setup.sh']
+          pattern: writeOperatorApiKey=false
+
+  - it: AUTO mode RBAC Role includes deployments rule
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: templates/pat-seed/rbac.yaml
+    asserts:
+      - contains:
+          path: rules
+          content:
+            apiGroups:
+              - apps
+            resources:
+              - deployments
+            verbs:
+              - get
+              - patch
+        documentSelector:
+          path: kind
+          value: Role
+
+  - it: operator disabled configmap has no operator Secret write
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+      operator.enabled: false
+    template: templates/pat-seed/configmap.yaml
+    asserts:
+      - notMatchRegex:
+          path: data['setup.sh']
+          pattern: netbird-mgmt-api-key
+      - notMatchRegex:
+          path: data['setup.sh']
+          pattern: restartedAt
+
+  - it: operator disabled RBAC Role has no deployments rule
+    set:
+      auth.mode: external
+      patSeed.enabled: true
+      operator.enabled: false
+    template: templates/pat-seed/rbac.yaml
+    asserts:
+      - lengthEqual:
+          path: rules
+          count: 1
+        documentSelector:
+          path: kind
+          value: Role
