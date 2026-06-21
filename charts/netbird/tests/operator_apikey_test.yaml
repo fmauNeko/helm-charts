@@ -1,0 +1,59 @@
+suite: operator API-key Secret
+templates:
+  - templates/operator/apikey-secret.yaml
+tests:
+  - it: renders Secret when operator+patSeed+writeOperatorApiKey enabled
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: templates/operator/apikey-secret.yaml
+    asserts:
+      - isKind:
+          of: Secret
+      - equal:
+          path: metadata.name
+          value: netbird-mgmt-api-key
+      - equal:
+          path: metadata.annotations["helm.sh/resource-policy"]
+          value: keep
+      - isNull:
+          path: metadata.annotations["helm.sh/hook"]
+
+  - it: absent when operator disabled
+    set:
+      auth.mode: external
+      operator.enabled: false
+      patSeed.enabled: true
+      patSeed.writeOperatorApiKey: true
+    template: templates/operator/apikey-secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: absent when patSeed disabled
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: false
+      patSeed.writeOperatorApiKey: true
+    template: templates/operator/apikey-secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: absent when writeOperatorApiKey false (BYO mode)
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.writeOperatorApiKey: false
+    template: templates/operator/apikey-secret.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
