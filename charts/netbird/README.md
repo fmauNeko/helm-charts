@@ -4,6 +4,12 @@
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
+## Requirements
+
+| Repository | Name | Version |
+|------------|------|---------|
+| oci://ghcr.io/netbirdio/helm-charts | operator(netbird-operator) | 0.7.0 |
+
 ## Values
 
 | Key | Type | Default | Description |
@@ -54,7 +60,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | dashboard.service.port | int | `80` | Dashboard HTTP port |
 | dashboard.service.type | string | `"ClusterIP"` | Dashboard service type |
 | dashboard.tolerations | list | `[]` | Tolerations for dashboard pods |
-| extraManifests | list | `[]` | Extra Kubernetes manifests to deploy (raw YAML, processed with tpl) |
+| extraManifests | list | `[]` | Extra Kubernetes manifests to deploy (raw YAML, processed with tpl). Use this to expose in-cluster Services onto your NetBird network when the operator is enabled. Prerequisites: a DNS zone must PRE-EXIST in the NetBird dashboard (e.g. prod.company.internal) before creating a NetworkRouter. Example:    - apiVersion: netbird.io/v1alpha1     kind: NetworkRouter     metadata:       name: prod       namespace: netbird     spec:       dnsZoneRef:         name: prod.company.internal   - apiVersion: netbird.io/v1alpha1     kind: NetworkResource     metadata:       name: my-service       namespace: default     spec:       networkRouterRef:         name: prod         namespace: netbird       serviceRef:         name: my-service       groups:         - name: All |
 | gateway.enabled | bool | `false` | Enable Gateway API routes (requires Gateway API CRDs) |
 | gateway.parentRef.name | string | `""` | Gateway name to attach routes to |
 | gateway.parentRef.namespace | string | `""` | Gateway namespace |
@@ -104,6 +110,14 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | metrics.serviceMonitor.enabled | bool | `false` | Enable Prometheus ServiceMonitor (requires Prometheus Operator) |
 | metrics.serviceMonitor.interval | string | `"30s"` | Scrape interval |
 | metrics.serviceMonitor.labels | object | `{}` | Additional labels for ServiceMonitor |
+| operator.cluster.dns | string | `"svc.cluster.local"` | Cluster DNS suffix (used for webhook cert SANs and DNS resource names) |
+| operator.cluster.name | string | `"kubernetes"` | Cluster name used for generating NetBird resource names |
+| operator.enabled | bool | `false` | Enable the optional NetBird Kubernetes Operator subchart (requires cert-manager in the cluster) |
+| operator.gatewayAPI.enabled | bool | `false` | Enable Gateway API integration (requires Gateway API CRDs) |
+| operator.managementURL | string | `""` | Management API URL of your self-hosted NetBird server. REQUIRED when operator.enabled=true. Typically https://<global.host> (external) or http://<release>-netbird-management:80 (in-cluster). Defaults to NetBird Cloud (https://api.netbird.io) if not set — which is WRONG for self-hosted. |
+| operator.netbirdAPI.keyFromSecret.key | string | `"NB_API_KEY"` | Key within the Secret that holds the API token |
+| operator.netbirdAPI.keyFromSecret.name | string | `"netbird-mgmt-api-key"` | Name of the Secret containing the NetBird management API key |
+| operator.webhook.enableCertManager | bool | `true` | Use cert-manager to provision webhook certificates (recommended). cert-manager must be installed in the cluster. |
 | patSeed.activeDeadlineSeconds | int | `300` | Maximum time in seconds before the Job is terminated |
 | patSeed.adminEmail | string | `""` | Initial owner email |
 | patSeed.adminPassword | string | `""` | Initial owner password used for POST /api/setup. Prefer setting through an external values file or secret management workflow. |
@@ -112,6 +126,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | patSeed.image.repository | string | `"curlimages/curl"` | Image for the PAT seed job (needs curl + sh) |
 | patSeed.image.tag | string | `"8.20.0"` | PAT seed job image tag |
 | patSeed.seedDefaultResources | bool | `true` | Seed the default All group and allow-all policy |
+| patSeed.writeOperatorApiKey | bool | `true` | When true (default), the pat-seed Job also writes the NetBird PAT into the operator's API-key Secret (netbird-mgmt-api-key) so the operator can connect to the management API. Set to false to manage the operator credential yourself (BYO mode). |
 | relay.affinity | object | `{}` | Affinity rules for relay pods |
 | relay.exposedAddress | string | `"relay.example.com:443"` | REQUIRED: Externally reachable relay address (e.g. relay.example.com:443). Must be set for peers to connect. |
 | relay.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
