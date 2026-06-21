@@ -23,6 +23,7 @@ The netbird chart deploys the following separate workloads/components:
 - **signal**: Stateless workload. Netbird signal service listening on port 10000 (gRPC).
 - **relay**: Stateless workload. Netbird relay service listening on port 443 (HTTP/WebSocket) for TLS-terminated proxy connections. Optionally exposes an embedded STUN service on port 3478/UDP.
 - **dashboard**: Stateless workload. Web user interface listening on port 80 (HTTP).
+- **operator** (optional subchart, off by default): Official NetBird Kubernetes Operator (`netbird-operator` 0.7.0, alias `operator`, `condition: operator.enabled`). When enabled, cert-manager MUST be installed in the cluster. Run `helm dependency build charts/netbird` locally before any helm invocation.
 
 ---
 
@@ -47,6 +48,10 @@ These modes determine different values structures for key fields in `management.
 | Relay TLS termination     | Proxy Mode            | Pod accepts plain HTTP/ws from TLS-terminating proxy (no `--tls-cert-file` or `--tls-key-file` needed). Terminate at ingress and set WebSocket upgrade headers (`proxy-read-timeout` / `proxy-send-timeout` set to `3600`). |
 | Health endpoints          | GET `/api/instance`   | Management lacks `/api/health` or `/status`. Fallback to unauthenticated `GET /api/instance` (returns `{ "setup_required": bool }`) for Liveness/Readiness probes.                                                          |
 | PAT-seed setup            | Exit 0                | POST `/api/setup` returns `412 Precondition Failed` if instance is already set up. A status of `412` is treated as a success case by the pat-seed helper script.                                                            |
+| Operator `managementURL`  | `--netbird-management-url` | `operator.managementURL` → `--netbird-management-url=<value>` container arg. Defaults to cloud (`https://api.netbird.io`) — **WRONG for self-hosted**. Always set when `operator.enabled=true`.                      |
+| Operator credential       | `netbird-mgmt-api-key`    | Operator reads PAT via `secretKeyRef` (Secret name/key configurable via `operator.netbirdAPI.keyFromSecret`). The chart pre-creates this Secret as a NORMAL resource (no hook) so `helm install --wait` never deadlocks. |
+| cert-manager              | REQUIRED                  | Webhook TLS requires cert-manager (`operator.webhook.enableCertManager=true` by default). Disable only with BYO `webhook.tls`.                                                                                             |
+| Operator CRD lifecycle    | INSTALL-ONCE              | CRDs in `crds/` are installed once. Helm does NOT upgrade or remove them. Cleanup: `kubectl delete crd -l app.kubernetes.io/name=netbird-operator`.                                                                        |
 
 ---
 
@@ -72,6 +77,48 @@ Renovate uses a custom regex manager configured in `renovate.json` to identify t
 
 ---
 
+## Operator Integration
+
+The netbird chart optionally bundles the official netbird-operator as a Helm subchart dependency (`operator.enabled: false` by default, alias `operator`).
+
+**Subchart dependency:**
+
+- `charts/netbird/Chart.lock` is committed. The vendored `.tgz` is git-ignored.
+- Always run `helm dependency build charts/netbird` before any local `helm template`, `helm install`, or `ct lint`.
+- The `netbird-operator` subchart version in `Chart.yaml` is tracked by Renovate via the custom-regex manager in `renovate.json`.
+
+**PAT auto-wire + rollout-restart (AUTO credential mode, `patSeed.writeOperatorApiKey=true`):**
+
+1. The chart pre-creates the operator API-key Secret as a NORMAL resource (empty placeholder, `helm.sh/resource-policy: keep`).
+2. `helm install --wait` completes: operator pod is Ready but idle (credential empty — this is normal).
+3. The `pat-seed` post-install Job bootstraps the account, writes the real PAT to `<release>-pat`, patches the operator Secret, and rollout-restarts the operator Deployment.
+4. On a **412 (already-initialized)** server in AUTO mode: pat-seed copies from `<release>-pat` if it exists, else exits non-zero. Switch to BYO mode (`patSeed.writeOperatorApiKey=false`) and pre-create the Secret manually.
+
+**Exposing a Service (DNS zone must PRE-EXIST in the NetBird dashboard before any NetworkRouter):**
+
+```yaml
+extraManifests:
+  - apiVersion: netbird.io/v1alpha1
+    kind: NetworkRouter
+    metadata:
+      name: prod
+      namespace: netbird
+    spec:
+      dnsZoneRef:
+        name: prod.company.internal
+  - apiVersion: netbird.io/v1alpha1
+    kind: NetworkResource
+    metadata:
+      name: my-svc
+      namespace: default
+    spec:
+      networkRouterRef: { name: prod, namespace: netbird }
+      serviceRef: { name: my-svc }
+      groups: [{ name: All }]
+```
+
+---
+
 ## CRITICAL WARNINGS
 
 - **SQLite Database Locks**: `management.replicas` must always be `1` and strategy must be `Recreate`. SQLite does not support concurrent writers.
@@ -89,3 +136,5 @@ Renovate uses a custom regex manager configured in `renovate.json` to identify t
 - [ ] `values.schema.json` updated if new value keys were added
 - [ ] `appVersion` Renovate comment present and correct in `Chart.yaml`
 - [ ] Primary images fallback to `""` for `appVersion` while separate release cycle images are explicitly pinned
+- [ ] `helm dependency build charts/netbird` succeeds and `Chart.lock` is committed
+- [ ] When `operator.*` changes: operator-on render produces a non-hook API-key Secret; guards fire on empty `managementURL`; `helm unittest charts/netbird` passes the operator suites (`operator_test.yaml`, `operator_apikey_test.yaml`)
