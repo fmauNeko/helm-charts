@@ -28,3 +28,46 @@ AUTH MODE: {{ .Values.auth.mode }}
 {{- if .Values.patSeed.enabled }}
 PAT SEED: The bootstrap job will run to create the initial account and PAT.
 {{- end }}
+{{- if .Values.operator.enabled }}
+
+NETBIRD KUBERNETES OPERATOR:
+  Management API: {{ .Values.operator.managementURL }}
+
+  ⚠️  PREREQUISITES (must be satisfied before install):
+     - cert-manager must be installed in the cluster (required for webhook TLS;
+       disable with operator.webhook.enableCertManager=false + BYO webhook.tls).
+     - A DNS zone must PRE-EXIST in the NetBird dashboard before deploying any
+       NetworkRouter resource. Create it under Settings → DNS → Add zone.
+
+{{- if .Values.patSeed.writeOperatorApiKey }}
+  CREDENTIAL MODE: AUTO — pat-seed writes the NetBird PAT into the operator
+  Secret ('{{ .Values.operator.netbirdAPI.keyFromSecret.name }}') after account
+  bootstrap. On a FRESH install the operator starts but stays idle until pat-seed
+  completes (this is normal). On an ALREADY-INITIALIZED server, pat-seed exits
+  non-zero when no chart-minted PAT is available — switch to BYO mode:
+  set patSeed.writeOperatorApiKey=false and pre-create the Secret (see below).
+{{- else }}
+  CREDENTIAL MODE: BYO — you must pre-create the operator credential Secret:
+    kubectl create secret generic {{ .Values.operator.netbirdAPI.keyFromSecret.name }} \
+      --from-literal {{ .Values.operator.netbirdAPI.keyFromSecret.key }}=<netbird-pat>
+  The operator pod will NOT start without this Secret.
+{{- end }}
+
+  EXPOSE A SERVICE (via extraManifests, after the DNS zone exists in the dashboard):
+    extraManifests:
+      - apiVersion: netbird.io/v1alpha1
+        kind: NetworkRouter
+        metadata: { name: prod, namespace: netbird }
+        spec: { dnsZoneRef: { name: prod.company.internal } }
+      - apiVersion: netbird.io/v1alpha1
+        kind: NetworkResource
+        metadata: { name: my-svc, namespace: default }
+        spec:
+          networkRouterRef: { name: prod, namespace: netbird }
+          serviceRef: { name: my-svc }
+          groups: [{ name: All }]
+
+  ⚠️  CRD LIFECYCLE: Operator CRDs are installed once and are NOT upgraded or
+     removed by Helm upgrades/uninstalls. To clean up manually:
+       kubectl delete crd -l app.kubernetes.io/name=netbird-operator
+{{- end }}
