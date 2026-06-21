@@ -355,5 +355,10 @@ serviceAccount:
   # -- Annotations to add to service accounts
   annotations: {}
 
+# NetBird Kubernetes Operator (optional subchart)
+operator:
+  # -- Enable the optional NetBird Kubernetes Operator subchart (requires cert-manager in the cluster)
+  enabled: false
+
 # -- Extra Kubernetes manifests to deploy (raw YAML, processed with tpl)
 extraManifests: []

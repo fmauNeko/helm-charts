@@ -5,3 +5,9 @@ type: application
 version: 0.2.7
 # renovate: datasource=docker depName=netbirdio/management versioning=docker
 appVersion: '0.73.1'
+dependencies:
+  - name: netbird-operator
+    alias: operator
+    version: 0.7.0
+    repository: oci://ghcr.io/netbirdio/helm-charts
+    condition: operator.enabled

@@ -17,6 +17,7 @@ CHANGELOG.md
 
 # Helm chart archives
 *.tgz
+charts/**/Chart.lock
 .cr-release-packages/
 dist/
 
