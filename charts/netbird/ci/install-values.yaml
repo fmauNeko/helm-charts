@@ -1,0 +1,18 @@
+operator:
+  enabled: false
+patSeed:
+  enabled: false
+auth:
+  mode: external
+  external:
+    authority: 'https://example.com'
+global:
+  host: 'netbird.ci.local'
+relay:
+  exposedAddress: 'relay.ci.local:443'
+  stun:
+    service:
+      type: NodePort
+management:
+  persistence:
+    enabled: false
