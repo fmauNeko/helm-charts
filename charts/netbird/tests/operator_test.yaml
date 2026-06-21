@@ -11,7 +11,7 @@ tests:
     template: templates/operator/validation.yaml
     asserts:
       - failedTemplate:
-          errorMessage: "operator.managementURL is required when operator.enabled=true. Set it to your NetBird server URL (e.g. https://netbird.example.com)"
+          errorMessage: 'operator.managementURL is required when operator.enabled=true. Set it to your NetBird server URL (e.g. https://netbird.example.com)'
 
   - it: fails in AUTO mode when patSeed.enabled=false
     set:
@@ -128,5 +128,3 @@ tests:
               secretKeyRef:
                 name: netbird-mgmt-api-key
                 key: NB_API_KEY
-
-
