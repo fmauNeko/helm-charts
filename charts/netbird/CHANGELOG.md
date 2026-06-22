@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.7...netbird-v0.3.0) (2026-06-22)
+
+
+### Features
+
+* **netbird:** add optional NetBird Kubernetes Operator integration ([#56](https://github.com/fmauNeko/helm-charts/issues/56)) ([a54c7a0](https://github.com/fmauNeko/helm-charts/commit/a54c7a0488ccfa9e794995fe25793fc1838954f0))
+
 ## [0.2.7](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.2.6...netbird-v0.2.7) (2026-06-20)
 
 
