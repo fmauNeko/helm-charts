@@ -1,9 +1,10 @@
 # Release workflow: Release Please manages versions/changelogs/tags,
 # then the publish job packages and pushes released charts to GHCR as OCI artifacts.
 #
-# NOTE: Release Please PRs opened with GITHUB_TOKEN will NOT automatically trigger
-# the ci.yaml workflow. Mitigation: do NOT require CI status checks on RP PRs,
-# or use a PAT/GitHub App for the release-please action (future enhancement).
+# Release Please uses a GitHub App token so its PRs trigger CI workflows normally.
+# Required repository configuration:
+#   vars.RELEASE_APP_ID          — GitHub App ID
+#   secrets.RELEASE_APP_PRIVATE_KEY — GitHub App private key (PEM)
 name: Release
 
 on:
@@ -27,11 +28,19 @@ jobs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       paths_released: ${{ steps.release.outputs.paths_released }}
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
         id: release
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+          token: ${{ steps.app-token.outputs.token }}
 
   publish:
     name: Publish charts to GHCR
