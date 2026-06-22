@@ -3,9 +3,7 @@ operator:
 patSeed:
   enabled: false
 auth:
-  mode: external
-  external:
-    authority: 'https://example.com'
+  mode: embedded
 global:
   host: 'netbird.ci.local'
 relay:
