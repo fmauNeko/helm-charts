@@ -260,7 +260,7 @@
             }
         },
         "extraManifests": {
-            "description": "Extra Kubernetes manifests to deploy (raw YAML, processed with tpl)",
+            "description": "Extra Kubernetes manifests to deploy (raw YAML, processed with tpl). Use this to expose in-cluster Services onto your NetBird network when the operator is enabled. Prerequisites: a DNS zone must PRE-EXIST in the NetBird dashboard (e.g. prod.company.internal) before creating a NetworkRouter. Example:  - apiVersion: netbird.io/v1alpha1 kind: NetworkRouter metadata: name: prod namespace: netbird spec: dnsZoneRef: name: prod.company.internal - apiVersion: netbird.io/v1alpha1 kind: NetworkResource metadata: name: my-service namespace: default spec: networkRouterRef: name: prod namespace: netbird serviceRef: name: my-service groups: - name: All",
             "type": "array"
         },
         "gateway": {
@@ -542,6 +542,68 @@
                 }
             }
         },
+        "operator": {
+            "type": "object",
+            "properties": {
+                "cluster": {
+                    "type": "object",
+                    "properties": {
+                        "dns": {
+                            "description": "Cluster DNS suffix (used for webhook cert SANs and DNS resource names)",
+                            "type": "string"
+                        },
+                        "name": {
+                            "description": "Cluster name used for generating NetBird resource names",
+                            "type": "string"
+                        }
+                    }
+                },
+                "enabled": {
+                    "description": "Enable the optional NetBird Kubernetes Operator subchart (requires cert-manager in the cluster)",
+                    "type": "boolean"
+                },
+                "gatewayAPI": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "description": "Enable Gateway API integration (requires Gateway API CRDs)",
+                            "type": "boolean"
+                        }
+                    }
+                },
+                "managementURL": {
+                    "description": "Management API URL of your self-hosted NetBird server. REQUIRED when operator.enabled=true. Typically https://\u003cglobal.host\u003e (external) or http://\u003crelease\u003e-netbird-management:80 (in-cluster). Defaults to NetBird Cloud (https://api.netbird.io) if not set — which is WRONG for self-hosted.",
+                    "type": "string"
+                },
+                "netbirdAPI": {
+                    "type": "object",
+                    "properties": {
+                        "keyFromSecret": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "description": "Key within the Secret that holds the API token",
+                                    "type": "string"
+                                },
+                                "name": {
+                                    "description": "Name of the Secret containing the NetBird management API key",
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "webhook": {
+                    "type": "object",
+                    "properties": {
+                        "enableCertManager": {
+                            "description": "Use cert-manager to provision webhook certificates (recommended). cert-manager must be installed in the cluster.",
+                            "type": "boolean"
+                        }
+                    }
+                }
+            }
+        },
         "patSeed": {
             "type": "object",
             "properties": {
@@ -580,6 +642,10 @@
                 },
                 "seedDefaultResources": {
                     "description": "Seed the default All group and allow-all policy",
+                    "type": "boolean"
+                },
+                "writeOperatorApiKey": {
+                    "description": "When true (default), the pat-seed Job also writes the NetBird PAT into the operator's API-key Secret (netbird-mgmt-api-key) so the operator can connect to the management API. Set to false to manage the operator credential yourself (BYO mode).",
                     "type": "boolean"
                 }
             }

@@ -23,6 +23,9 @@ pnpm install
 # Guided commit message authoring
 pnpm run commit
 
+# Build chart dependencies (required before helm for charts with subcharts, e.g. netbird/netbird-operator)
+helm dependency build charts/<name>/
+
 # Lint and template validation
 helm lint --strict charts/<name>/
 helm template charts/<name>/
@@ -73,9 +76,9 @@ appVersion: 'x.y.z'
 
 ## Chart Index
 
-| Chart   | Path           | AGENTS.md                             | Description                       |
-| ------- | -------------- | ------------------------------------- | --------------------------------- |
-| netbird | charts/netbird | [AGENTS.md](charts/netbird/AGENTS.md) | NetBird mesh VPN — split topology |
+| Chart   | Path           | AGENTS.md                             | Description                                                                       |
+| ------- | -------------- | ------------------------------------- | --------------------------------------------------------------------------------- |
+| netbird | charts/netbird | [AGENTS.md](charts/netbird/AGENTS.md) | NetBird mesh VPN — split topology (includes optional `netbird-operator` subchart) |
 
 For detailed authoring guidelines, check [docs/chart-authoring.md](docs/chart-authoring.md).
 
@@ -147,6 +150,10 @@ echo "feat(x): ok" | pnpm exec commitlint
 - **`pr-labeler.yaml` / `labels-sync.yaml`**: Handles automatic PR labeling and syncs label configurations from `labels.yml`.
 
 Note: Release Please PRs triggered by the default token might not trigger normal CI runs. Passing CI checks are not strictly required for Release Please PRs to be merged.
+
+**Subchart dependencies**: Charts with subchart dependencies (e.g. `netbird` with `netbird-operator`) require `helm dependency build` before any helm operation. CI runs this automatically in `chart-lint-test`, `integration`, and `gated-install`. Locally: run `helm dependency build charts/<name>` after checkout. `Chart.lock` is committed; vendored `.tgz` files are git-ignored. When `operator.enabled=true`, cert-manager must be installed in the cluster.
+
+**ct version-increment caveat**: `ct.yaml` sets `check-version-increment: true`. Since `version:` in `Chart.yaml` is Release-Please-owned and intentionally NOT bumped in feature PRs, the version-increment finding on a feature PR is expected and reconciled by the post-merge Release Please PR. Do not manually bump `version:` to silence this check.
 
 ## AGENTS.md Maintenance Rule
 

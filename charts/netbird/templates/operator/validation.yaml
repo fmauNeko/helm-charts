@@ -1,0 +1,10 @@
+{{- if .Values.operator.enabled -}}
+{{- if not .Values.operator.managementURL -}}
+{{- fail "operator.managementURL is required when operator.enabled=true. Set it to your NetBird server URL (e.g. https://netbird.example.com)" -}}
+{{- end -}}
+{{- if .Values.patSeed.writeOperatorApiKey -}}
+{{- if not (and .Values.patSeed.enabled .Values.patSeed.adminEmail .Values.patSeed.adminPassword) -}}
+{{- fail "operator.enabled=true with patSeed.writeOperatorApiKey=true (AUTO credential mode) requires patSeed.enabled=true with non-empty patSeed.adminEmail and patSeed.adminPassword. To skip auto-provisioning, set patSeed.writeOperatorApiKey=false and pre-create a Secret named 'netbird-mgmt-api-key' with key 'NB_API_KEY'." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}

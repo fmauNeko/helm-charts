@@ -1,0 +1,130 @@
+suite: operator guards and subchart wiring
+templates:
+  - templates/operator/validation.yaml
+  - charts/operator/templates/deployment.yaml
+  - templates/operator/apikey-secret.yaml
+tests:
+  - it: fails when managementURL empty
+    set:
+      auth.mode: external
+      operator.enabled: true
+    template: templates/operator/validation.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: 'operator.managementURL is required when operator.enabled=true. Set it to your NetBird server URL (e.g. https://netbird.example.com)'
+
+  - it: fails in AUTO mode when patSeed.enabled=false
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: false
+    template: templates/operator/validation.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "operator.enabled=true with patSeed.writeOperatorApiKey=true (AUTO credential mode) requires patSeed.enabled=true with non-empty patSeed.adminEmail and patSeed.adminPassword. To skip auto-provisioning, set patSeed.writeOperatorApiKey=false and pre-create a Secret named 'netbird-mgmt-api-key' with key 'NB_API_KEY'."
+
+  - it: fails in AUTO mode when adminEmail empty
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminPassword: x
+    template: templates/operator/validation.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "operator.enabled=true with patSeed.writeOperatorApiKey=true (AUTO credential mode) requires patSeed.enabled=true with non-empty patSeed.adminEmail and patSeed.adminPassword. To skip auto-provisioning, set patSeed.writeOperatorApiKey=false and pre-create a Secret named 'netbird-mgmt-api-key' with key 'NB_API_KEY'."
+
+  - it: fails in AUTO mode when adminPassword empty
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminEmail: a@b.c
+    template: templates/operator/validation.yaml
+    asserts:
+      - failedTemplate:
+          errorMessage: "operator.enabled=true with patSeed.writeOperatorApiKey=true (AUTO credential mode) requires patSeed.enabled=true with non-empty patSeed.adminEmail and patSeed.adminPassword. To skip auto-provisioning, set patSeed.writeOperatorApiKey=false and pre-create a Secret named 'netbird-mgmt-api-key' with key 'NB_API_KEY'."
+
+  - it: succeeds in fully-good AUTO mode
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: templates/operator/validation.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: succeeds in BYO mode (writeOperatorApiKey=false)
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.writeOperatorApiKey: false
+    template: templates/operator/validation.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: succeeds when operator disabled
+    set:
+      auth.mode: external
+    template: templates/operator/validation.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: operator Deployment contains management URL arg
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: charts/operator/templates/deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --netbird-management-url=https://nb.example.com
+
+  - it: operator Deployment contains api-key arg
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: charts/operator/templates/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].args
+          content: --netbird-api-key=$(NB_API_KEY)
+
+  - it: operator Deployment NB_API_KEY env uses correct secretKeyRef
+    set:
+      auth.mode: external
+      operator.enabled: true
+      operator.managementURL: https://nb.example.com
+      patSeed.enabled: true
+      patSeed.adminEmail: a@b.c
+      patSeed.adminPassword: x
+    template: charts/operator/templates/deployment.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: NB_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: netbird-mgmt-api-key
+                key: NB_API_KEY

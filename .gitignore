@@ -9,5 +9,6 @@ pnpm-debug.log*
 
 # Helm / chart-releaser build artifacts
 *.tgz
+charts/*/charts/
 dist/
 .cr-release-packages/
