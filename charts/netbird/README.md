@@ -124,7 +124,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | patSeed.enabled | bool | `false` | Enable the PAT seed bootstrap Job (creates initial account + PAT via native /api/setup endpoint) |
 | patSeed.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | patSeed.image.repository | string | `"curlimages/curl"` | Image for the PAT seed job (needs curl + sh) |
-| patSeed.image.tag | string | `"8.20.0"` | PAT seed job image tag |
+| patSeed.image.tag | string | `"8.21.0"` | PAT seed job image tag |
 | patSeed.seedDefaultResources | bool | `true` | Seed the default All group and allow-all policy |
 | patSeed.writeOperatorApiKey | bool | `true` | When true (default), the pat-seed Job also writes the NetBird PAT into the operator's API-key Secret (netbird-mgmt-api-key) so the operator can connect to the management API. Set to false to manage the operator credential yourself (BYO mode). |
 | relay.affinity | object | `{}` | Affinity rules for relay pods |
