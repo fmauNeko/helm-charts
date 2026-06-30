@@ -52,7 +52,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 | dashboard.extraEnv | list | `[]` | Additional environment variables for dashboard container |
 | dashboard.image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | dashboard.image.repository | string | `"netbirdio/dashboard"` | Dashboard image repository |
-| dashboard.image.tag | string | `"v2.90.1"` | Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion. |
+| dashboard.image.tag | string | `"v2.90.2"` | Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion. |
 | dashboard.nodeSelector | object | `{}` | Node selector for dashboard pods |
 | dashboard.podAnnotations | object | `{}` | Pod annotations for dashboard |
 | dashboard.replicaCount | int | `1` | Number of dashboard replicas |
