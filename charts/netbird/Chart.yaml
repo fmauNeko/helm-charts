@@ -4,7 +4,7 @@ description: Self-hosted NetBird mesh VPN — management, signal, relay, and das
 type: application
 version: 0.3.6
 # renovate: datasource=docker depName=netbirdio/management versioning=docker
-appVersion: '0.74.2'
+appVersion: '0.74.3'
 dependencies:
   - name: netbird-operator
     alias: operator
