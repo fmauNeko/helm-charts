@@ -1,6 +1,6 @@
 # netbird
 
-![Version: 0.3.6](https://img.shields.io/badge/Version-0.3.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.74.3](https://img.shields.io/badge/AppVersion-0.74.3-informational?style=flat-square)
+![Version: 0.3.6](https://img.shields.io/badge/Version-0.3.6-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.74.4](https://img.shields.io/badge/AppVersion-0.74.4-informational?style=flat-square)
 
 Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
