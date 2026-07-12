@@ -2,7 +2,7 @@ apiVersion: v2
 name: netbird
 description: Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 type: application
-version: 0.3.6
+version: 0.3.7
 # renovate: datasource=docker depName=netbirdio/management versioning=docker
 appVersion: '0.74.4'
 dependencies:
