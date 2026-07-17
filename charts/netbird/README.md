@@ -8,7 +8,7 @@ Self-hosted NetBird mesh VPN — management, signal, relay, and dashboard.
 
 | Repository | Name | Version |
 |------------|------|---------|
-| oci://ghcr.io/netbirdio/helm-charts | operator(netbird-operator) | 0.7.0 |
+| oci://ghcr.io/netbirdio/helm-charts | operator(netbird-operator) | 0.8.0 |
 
 ## Values
 
