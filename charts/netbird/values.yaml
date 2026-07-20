@@ -230,7 +230,7 @@ dashboard:
     # -- Dashboard image repository
     repository: 'netbirdio/dashboard'
     # -- Dashboard image tag. NOTE: dashboard has its own release track, never falls back to chart appVersion.
-    tag: 'v2.90.4'
+    tag: 'v2.90.5'
     # -- Image pull policy
     pullPolicy: IfNotPresent
   # -- Additional environment variables for dashboard container
