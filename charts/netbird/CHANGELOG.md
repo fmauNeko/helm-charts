@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.12](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.3.11...netbird-v0.3.12) (2026-09-03)
+
+
+### Bug Fixes
+
+* **deps:** update curlimages/curl to v8.22.0 ([#146](https://github.com/fmauNeko/helm-charts/issues/146)) ([5c2caa5](https://github.com/fmauNeko/helm-charts/commit/5c2caa5838ee11d4adc4cef32b022f3b95caef85))
+* **deps:** update netbirdio/management to v0.78.0 ([#148](https://github.com/fmauNeko/helm-charts/issues/148)) ([68effe2](https://github.com/fmauNeko/helm-charts/commit/68effe2c88b0e766aa99658192657d95a49825e9))
+
 ## [0.3.11](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.3.10...netbird-v0.3.11) (2026-08-31)
 
 
