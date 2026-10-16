@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.18](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.3.17...netbird-v0.3.18) (2026-10-16)
+
+
+### Bug Fixes
+
+* **deps:** update netbirdio/management to v0.81.1 ([#193](https://github.com/fmauNeko/helm-charts/issues/193)) ([1b7bc8b](https://github.com/fmauNeko/helm-charts/commit/1b7bc8b21b86a3b062ee3a1d90dcbeb11ea30d65))
+* **deps:** update netbirdio/management to v0.81.2 ([#195](https://github.com/fmauNeko/helm-charts/issues/195)) ([dd28181](https://github.com/fmauNeko/helm-charts/commit/dd28181fb286e2b93c2254358af0ce4b4a08233e))
+
 ## [0.3.17](https://github.com/fmauNeko/helm-charts/compare/netbird-v0.3.16...netbird-v0.3.17) (2026-10-15)
 
 
