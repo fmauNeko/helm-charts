@@ -8,6 +8,6 @@ appVersion: '0.81.4'
 dependencies:
   - name: netbird-operator
     alias: operator
-    version: 0.8.0
+    version: 0.9.0
     repository: oci://ghcr.io/netbirdio/helm-charts
     condition: operator.enabled
